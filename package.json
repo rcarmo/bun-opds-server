@@ -1,5 +1,5 @@
 {
-  "name": "calibre-opds",
+  "name": "bun-opds-server",
   "private": true,
   "type": "module",
   "scripts": {

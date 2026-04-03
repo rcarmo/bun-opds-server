@@ -1,4 +1,4 @@
-# calibre-opds
+# bun-opds-server
 
 A small read-only OPDS server for **multiple Calibre libraries under one filesystem tree**.
 
@@ -38,7 +38,7 @@ This is aimed at setups where:
 ## Quick start
 
 ```bash
-cd /workspace/projects/calibre-opds
+cd /workspace/projects/bun-opds-server
 cp .env.example .env
 bun run index.ts
 ```
@@ -46,7 +46,7 @@ bun run index.ts
 Or with inline variables:
 
 ```bash
-cd /workspace/projects/calibre-opds
+cd /workspace/projects/bun-opds-server
 CALIBRE_ROOT=/volume1/books \
 BASE_URL=http://localhost:8787 \
 bun run index.ts
@@ -90,7 +90,7 @@ bun run --watch index.ts
 
 ## Publishing notes
 
-This project has been moved under `/workspace/projects/calibre-opds` and lightly cleaned up for GitHub publication:
+This project lives under `/workspace/projects/bun-opds-server` and has been lightly cleaned up for GitHub publication:
 
 - `.gitignore` added
 - `.env.example` added
