@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Bun
+bun.lockb
+bun.lock
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build artifacts
+coverage/
+dist/
+.tmp/
+tmp/
