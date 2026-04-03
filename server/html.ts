@@ -19,11 +19,21 @@ function shortDate(value?: string): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** Collapse long descriptions for compact card display. */
+function shortDescription(value?: string): string | undefined {
+  if (!value) return undefined;
+  return value.length > 220 ? `${value.slice(0, 217)}…` : value;
+}
+
 /** Build one HTML card for a book entry. */
 function renderBookCard(entry: BookEntry): string {
   const cover = entry.coverPath
     ? `<a class="cover-link" href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub"><img class="cover" src="/cover/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}" alt="Cover for ${escapeHtml(entry.title)}" loading="lazy" /></a>`
     : `<div class="cover placeholder">No cover</div>`;
+  const summary = shortDescription(entry.description);
+  const series = entry.series ? `<li><strong>Series:</strong> ${escapeHtml(entry.series)}</li>` : "";
+  const published = entry.publishedAt ? `<li><strong>Published:</strong> ${escapeHtml(shortDate(entry.publishedAt))}</li>` : "";
+  const tags = entry.tags.length ? `<li><strong>Tags:</strong> ${escapeHtml(entry.tags.slice(0, 6).join(", "))}</li>` : "";
 
   return `
     <article class="book-card">
@@ -33,8 +43,12 @@ function renderBookCard(entry: BookEntry): string {
         <p class="authors">${escapeHtml(entry.authors.join(", ") || "Unknown author")}</p>
         <ul>
           <li><strong>Library:</strong> ${escapeHtml(entry.libraryName)}</li>
+          ${series}
+          ${published}
           <li><strong>Updated:</strong> ${escapeHtml(shortDate(entry.updatedAt || entry.addedAt))}</li>
+          ${tags}
         </ul>
+        ${summary ? `<p class="summary">${escapeHtml(summary)}</p>` : ""}
         <p class="actions">
           <a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub">Download EPUB</a>
           <span>·</span>
@@ -129,6 +143,7 @@ export function renderBookListPage(title: string, entries: BookEntry[], info: Pa
     .book-meta h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
     .authors { margin: 0 0 0.5rem; color: #444; }
     .book-meta ul { margin: 0 0 0.75rem; padding-left: 1rem; color: #555; }
+    .summary { margin: 0 0 0.75rem; color: #444; font-size: 0.95rem; }
     .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0; }
     .pagination { display: flex; gap: 0.75rem; align-items: center; margin: 1rem 0 1.5rem; }
     .search { margin-bottom: 1rem; }

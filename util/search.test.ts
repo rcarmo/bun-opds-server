@@ -10,6 +10,10 @@ function makeBook(overrides: Partial<BookEntry> = {}): BookEntry {
     bookId: 1,
     title: "Example Book",
     authors: ["Author"],
+    series: undefined,
+    description: undefined,
+    publishedAt: undefined,
+    tags: [],
     bookPath: "Author/Example Book (1)",
     fileStem: "Example Book",
     epubPath: "/tmp/example.epub",
@@ -37,14 +41,30 @@ describe("searchBooks", () => {
     expect(result.map((entry) => entry.uid)).toEqual(["main:2"]);
   });
 
-  test("matches by author", () => {
+  test("prefers title matches over library-only matches", () => {
+    const result = searchBooks([
+      makeBook({ uid: "libtitle:1", title: "Dune Messiah", libraryName: "Sci-Fi" }),
+      makeBook({ uid: "libname:2", bookId: 2, title: "Random Book", libraryName: "Dune Shelf" }),
+    ], "dune");
+    expect(result.map((entry) => entry.uid)).toEqual(["libtitle:1", "libname:2"]);
+  });
+
+  test("matches by author and orders by recency when scores tie", () => {
     const result = searchBooks(entries, "ursula");
-    expect(result.map((entry) => entry.uid)).toEqual(["main:1", "main:2"]);
+    expect(result.map((entry) => entry.uid)).toEqual(["main:2", "main:1"]);
   });
 
   test("matches by library name", () => {
     const result = searchBooks(entries, "modern fiction");
     expect(result.map((entry) => entry.uid)).toEqual(["other:3"]);
+  });
+
+  test("matches by tags and series", () => {
+    const result = searchBooks([
+      makeBook({ uid: "tag:1", title: "Book A", tags: ["space opera"] }),
+      makeBook({ uid: "series:2", bookId: 2, title: "Book B", series: "Culture" }),
+    ], "culture");
+    expect(result.map((entry) => entry.uid)).toEqual(["series:2"]);
   });
 
   test("returns empty for blank query", () => {

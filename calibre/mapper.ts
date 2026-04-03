@@ -10,10 +10,21 @@ function normalizeDate(value?: string | null): string | undefined {
   return parsed.toISOString();
 }
 
-/** Split a Calibre GROUP_CONCAT authors field into a clean list. */
-function parseAuthors(value?: string | null): string[] {
+/** Split a Calibre GROUP_CONCAT field into a clean list. */
+function parseList(value?: string | null): string[] {
   if (!value) return [];
   return value.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
+/** Reduce HTML-ish Calibre comments to a compact text summary. */
+function normalizeDescription(value?: string | null): string | undefined {
+  if (!value) return undefined;
+  const text = value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text || undefined;
 }
 
 /** Map a raw Calibre row to a merged EPUB book entry if the file exists. */
@@ -29,7 +40,11 @@ export function mapRowToBook(library: Library, row: CalibreBookRow): BookEntry |
     libraryName: library.name,
     bookId: row.book_id,
     title: row.title,
-    authors: parseAuthors(row.authors),
+    authors: parseList(row.authors),
+    series: row.series || undefined,
+    description: normalizeDescription(row.description),
+    publishedAt: normalizeDate(row.published_at),
+    tags: parseList(row.tags),
     bookPath: row.book_path,
     fileStem: row.file_stem,
     epubPath,

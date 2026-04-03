@@ -6,17 +6,33 @@ SELECT
   b.path AS book_path,
   b.timestamp AS added_at,
   b.last_modified AS updated_at,
+  b.pubdate AS published_at,
   d.name AS file_stem,
-  GROUP_CONCAT(a.name, ', ') AS authors
+  (
+    SELECT GROUP_CONCAT(a.name, ', ')
+    FROM books_authors_link bal
+    JOIN authors a ON a.id = bal.author
+    WHERE bal.book = b.id
+  ) AS authors,
+  (
+    SELECT s.name
+    FROM books_series_link bsl
+    JOIN series s ON s.id = bsl.series
+    WHERE bsl.book = b.id
+    LIMIT 1
+  ) AS series,
+  (
+    SELECT GROUP_CONCAT(t.name, ', ')
+    FROM books_tags_link btl
+    JOIN tags t ON t.id = btl.tag
+    WHERE btl.book = b.id
+  ) AS tags,
+  c.text AS description
 FROM books b
 JOIN data d
   ON d.book = b.id
-LEFT JOIN books_authors_link bal
-  ON bal.book = b.id
-LEFT JOIN authors a
-  ON a.id = bal.author
+LEFT JOIN comments c
+  ON c.book = b.id
 WHERE UPPER(d.format) = 'EPUB'
-GROUP BY
-  b.id, b.title, b.path, b.timestamp, b.last_modified, d.name
 ORDER BY b.last_modified DESC
 `;

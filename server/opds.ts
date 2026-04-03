@@ -25,6 +25,14 @@ function renderBookEntry(config: AppConfig, entry: BookEntry): string {
       ].join("\n")
     : "";
 
+  const metadataBits = [
+    entry.libraryName,
+    entry.authors.length ? `Authors: ${entry.authors.join(", ")}` : undefined,
+    entry.series ? `Series: ${entry.series}` : undefined,
+    entry.tags.length ? `Tags: ${entry.tags.slice(0, 8).join(", ")}` : undefined,
+    entry.description,
+  ].filter(Boolean);
+
   return `
   <entry>
     <id>${xmlEscape(`tag:calibre-opds,2026:${entry.uid}`)}</id>
@@ -32,7 +40,8 @@ function renderBookEntry(config: AppConfig, entry: BookEntry): string {
     <updated>${xmlEscape(entryUpdated(entry))}</updated>
     ${authors}
     <category term="${xmlEscape(entry.librarySlug)}" label="${xmlEscape(entry.libraryName)}" />
-    <content type="text">${xmlEscape(`${entry.libraryName}${entry.authors.length ? ` — ${entry.authors.join(", ")}` : ""}`)}</content>
+    ${entry.tags.map((tag) => `<category term="${xmlEscape(tag)}" label="${xmlEscape(tag)}" />`).join("\n")}
+    <content type="text">${xmlEscape(metadataBits.join(" — "))}</content>
     ${coverLinks}
     <link rel="http://opds-spec.org/acquisition" type="application/epub+zip" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/epub`))}" />
   </entry>`.trim();

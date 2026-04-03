@@ -10,6 +10,10 @@ const entry: BookEntry = {
   bookId: 7,
   title: "Dune",
   authors: ["Frank Herbert"],
+  series: "Dune",
+  description: "Epic science fiction novel on Arrakis.",
+  publishedAt: "1965-01-01T00:00:00.000Z",
+  tags: ["science fiction", "classic"],
   bookPath: "Herbert, Frank/Dune (7)",
   fileStem: "Dune",
   epubPath: "/books/dune.epub",
@@ -31,6 +35,8 @@ describe("renderBookListPage", () => {
     const html = renderBookListPage("Recent", [entry], pageInfo, "/browse/recent");
     expect(html).toContain("Download EPUB");
     expect(html).toContain("Frank Herbert");
+    expect(html).toContain("Series:");
+    expect(html).toContain("science fiction");
     expect(html).toContain("max-height: 144px");
     expect(html).toContain("/download/main/7/epub");
   });

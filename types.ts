@@ -24,6 +24,14 @@ export type BookEntry = {
   title: string;
   /** Ordered list of author names. */
   authors: string[];
+  /** Optional series name from Calibre metadata. */
+  series?: string;
+  /** Optional short description/comments text. */
+  description?: string;
+  /** Optional published timestamp as ISO string. */
+  publishedAt?: string;
+  /** Tags derived from Calibre metadata. */
+  tags: string[];
   /** Relative Calibre book path from `books.path`. */
   bookPath: string;
   /** File stem from `data.name`. */
@@ -84,8 +92,16 @@ export type CalibreBookRow = {
   added_at?: string | null;
   /** Updated timestamp. */
   updated_at?: string | null;
+  /** Optional publication timestamp. */
+  published_at?: string | null;
   /** File stem in the library. */
   file_stem: string;
   /** Comma-separated authors list. */
   authors?: string | null;
+  /** Optional series name. */
+  series?: string | null;
+  /** Optional comma-separated tag list. */
+  tags?: string | null;
+  /** Optional comments / description text. */
+  description?: string | null;
 };

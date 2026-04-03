@@ -18,6 +18,10 @@ const entry: BookEntry = {
   bookId: 7,
   title: "The Left Hand of Darkness",
   authors: ["Ursula K. Le Guin"],
+  series: "Hainish Cycle",
+  description: "A science fiction classic.",
+  publishedAt: "1969-01-01T00:00:00.000Z",
+  tags: ["science fiction"],
   bookPath: "Le Guin, Ursula K/The Left Hand of Darkness (7)",
   fileStem: "The Left Hand of Darkness",
   epubPath: "/books/Main/The Left Hand of Darkness.epub",
@@ -32,5 +36,7 @@ describe("renderAcquisitionFeed", () => {
     expect(xml).toContain("application/epub+zip");
     expect(xml).toContain("/download/main/7/epub");
     expect(xml).toContain("The Left Hand of Darkness");
+    expect(xml).toContain("Hainish Cycle");
+    expect(xml).toContain("science fiction");
   });
 });

@@ -17,9 +17,10 @@ It scans for `metadata.db` files, merges EPUB-capable books across libraries, de
   - search results
 - exposes lightweight HTML browse pages with:
   - constrained cover display
-  - minimal metadata
+  - minimal metadata (series, tags, updated/published dates, short description)
   - direct EPUB download links
 - supports pagination for browse/feed views
+- supports scored search ordering across title, authors, series, tags, and library
 - serves direct EPUB downloads
 - optionally serves cover images
 - supports optional HTTP basic auth
@@ -56,6 +57,8 @@ This is aimed at setups where:
 ### Asset / download
 - `/download/:librarySlug/:bookId/epub`
 - `/cover/:librarySlug/:bookId`
+
+Search results are ranked primarily by title matches, then by author/series/tag/library matches, with recency as a tiebreaker.
 
 ## Quick start
 
@@ -143,24 +146,23 @@ For semver tags like `v0.1.0`, the workflow publishes tags such as:
 Example:
 
 ```bash
-git tag v0.1.4
-git push origin v0.1.4
+git tag v0.1.5
+git push origin v0.1.5
 ```
 
 ## Design notes
 
 - intentionally **read-only**
 - currently assumes cover images live at `cover.jpg` inside each Calibre book directory
-- cover display in HTML views is size-constrained with CSS, but images are not yet physically resized server-side
+- cover display in HTML views is size-constrained with CSS; server-side physical resizing is still a future improvement
 - currently deduplicates by normalized title and keeps the newest matching item
-- search is a simple substring match across title, authors, and library name
+- search uses simple weighted scoring across title, authors, series, tags, and library name
 - currently exposes a **minimal OPDS 1.x-style feed** aimed at ebook readers
 
 ## Next likely steps
 
 - better cover detection
 - server-side thumbnail generation / resizing
-- richer metadata display
 - deployment examples (Compose / reverse proxy)
 - repository polish (license choice, CI, release tagging)
 
