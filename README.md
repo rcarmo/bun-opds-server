@@ -1,12 +1,12 @@
 # bun-opds-server
 
-> A read-only multi-library OPDS server for Calibre, designed for the **XteInk X4** with **CrossPoint Reader**.
+> A lightweight read-only OPDS server that merges multiple Calibre libraries into a single catalog, with EPUB, PDF, CBZ, and CBR downloads for devices like the **XteInk X4** running **CrossPoint Reader**.
 
 A small read-only OPDS server for **multiple Calibre libraries under one filesystem tree**.
 
-It scans for `metadata.db` files, merges EPUB-capable books across libraries, deduplicates by title, and exposes simple OPDS feeds for ebook readers.
+It scans for `metadata.db` files, merges supported book formats across libraries, deduplicates by title, and exposes simple OPDS feeds for ebook readers.
 
-It is also intended to work well with [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader) on the XteInk X4 and similar eink devices that can consume OPDS catalogs and direct downloads.
+It is intended to work especially well with [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader) on the XteInk X4 and similar eink devices that can consume OPDS catalogs and direct downloads.
 
 ## Current MVP
 
