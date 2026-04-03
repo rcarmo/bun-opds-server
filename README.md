@@ -1,5 +1,7 @@
 # bun-opds-server
 
+> A read-only multi-library OPDS server for Calibre, designed for the **XteInk X4** with **CrossPoint Reader**.
+
 A small read-only OPDS server for **multiple Calibre libraries under one filesystem tree**.
 
 It scans for `metadata.db` files, merges EPUB-capable books across libraries, deduplicates by title, and exposes simple OPDS feeds for ebook readers.

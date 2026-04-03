@@ -1,6 +1,29 @@
 {
   "name": "bun-opds-server",
   "version": "0.2.3",
+  "description": "Read-only multi-library OPDS server for Calibre, designed for the XteInk X4 with CrossPoint Reader.",
+  "license": "MIT",
+  "homepage": "https://github.com/rcarmo/bun-opds-server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rcarmo/bun-opds-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rcarmo/bun-opds-server/issues"
+  },
+  "keywords": [
+    "opds",
+    "calibre",
+    "ebook",
+    "ereader",
+    "crosspoint-reader",
+    "xteink-x4",
+    "bun",
+    "epub",
+    "pdf",
+    "cbz",
+    "cbr"
+  ],
   "private": true,
   "type": "module",
   "scripts": {
