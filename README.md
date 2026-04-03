@@ -102,6 +102,13 @@ docker compose up -d
 
 A GitHub Actions workflow builds and publishes the container image on every pushed tag matching `v*`.
 
+For semver tags like `v0.1.0`, the workflow publishes tags such as:
+
+- `ghcr.io/rcarmo/bun-opds-server:0.1.0`
+- `ghcr.io/rcarmo/bun-opds-server:0.1`
+- `ghcr.io/rcarmo/bun-opds-server:0`
+- `ghcr.io/rcarmo/bun-opds-server:latest`
+
 Example:
 
 ```bash
