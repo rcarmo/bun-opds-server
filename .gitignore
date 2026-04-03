@@ -23,3 +23,6 @@ coverage/
 dist/
 .tmp/
 tmp/
+
+# Local secrets
+.keys/

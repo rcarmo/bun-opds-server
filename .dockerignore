@@ -1,0 +1,11 @@
+.git
+.gitignore
+.github
+node_modules
+.env
+.env.local
+.keys
+coverage
+dist
+tmp
+*.log
