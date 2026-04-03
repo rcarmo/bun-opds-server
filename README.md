@@ -94,6 +94,15 @@ A sample Compose file is included as:
 
 - `docker-compose.yml`
 
+It supports `PUID` / `PGID` via Compose user mapping so the container can read host-mounted libraries as the expected user and group.
+
+Example `.env` values:
+
+```env
+PUID=1000
+PGID=1000
+```
+
 ```bash
 docker compose up -d
 ```
@@ -112,8 +121,8 @@ For semver tags like `v0.1.0`, the workflow publishes tags such as:
 Example:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 ## Design notes

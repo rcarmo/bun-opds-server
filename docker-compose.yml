@@ -2,6 +2,7 @@ services:
   bun-opds-server:
     image: ghcr.io/rcarmo/bun-opds-server:latest
     container_name: bun-opds-server
+    user: "${PUID:-1000}:${PGID:-1000}"
     restart: unless-stopped
     ports:
       - "8787:8787"
@@ -14,5 +15,6 @@ services:
       REFRESH_MS: 600000
       # BASIC_AUTH_USER: reader
       # BASIC_AUTH_PASS: change-me
+      # PUID/PGID are handled by the Compose user mapping above.
     volumes:
       - /path/to/books:/books:ro
