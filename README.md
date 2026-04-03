@@ -11,15 +11,16 @@ It scans for `metadata.db` files, merges EPUB-capable books across libraries, de
 - merges all books with available **EPUB** files
 - deduplicates entries by normalized book title, keeping the newest copy
 - exposes OPDS feeds for:
-  - recent additions
-  - recently updated
+  - recent additions (capped for ereader compatibility)
+  - recently updated (capped for ereader compatibility)
   - per-library views
-  - search results
+  - search results (capped for ereader compatibility)
 - exposes lightweight HTML browse pages with:
   - constrained cover display
   - minimal metadata (series, tags, updated/published dates, short description)
   - direct EPUB download links
 - supports pagination for browse/feed views
+- keeps HTML browse/search views unbounded by the feed cap so full libraries remain browseable
 - supports scored search ordering across title, authors, series, tags, and library
 - serves direct EPUB downloads
 - optionally serves cover images
@@ -58,7 +59,7 @@ This is aimed at setups where:
 - `/download/:librarySlug/:bookId/epub`
 - `/cover/:librarySlug/:bookId`
 
-Search results are ranked primarily by title matches, then by author/series/tag/library matches, with recency as a tiebreaker.
+Search results are ranked primarily by title matches, then by author/series/tag/library matches, with recency as a tiebreaker. OPDS feeds stay capped to the configured feed limit; HTML browse and search views can paginate through the full result set.
 
 ## Quick start
 

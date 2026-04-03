@@ -180,7 +180,7 @@ Bun.serve({
 
     if (pathname === "/opds/search") {
       const query = url.searchParams.get("q") || "";
-      const matches = searchBooks(state.books, query, config.feedLimit * 10);
+      const matches = searchBooks(state.books, query, config.feedLimit);
       const paged = paginate(matches, url.searchParams.get("page"), url.searchParams.get("pageSize"), config.feedLimit);
       const basePath = `/opds/search?q=${encodeURIComponent(query)}`;
       const xml = renderAcquisitionFeed(config, `Search results for: ${query || "(empty query)"}`, `search?q=${encodeURIComponent(query)}`, paged.items, {
@@ -192,14 +192,16 @@ Bun.serve({
     }
 
     if (pathname === "/browse/recent") {
-      const paged = paginate(state.recentAdded, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
+      const allRecent = sortByDate(state.books, (entry) => entry.addedAt);
+      const paged = paginate(allRecent, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
       return new Response(renderBookListPage("Recent additions", paged.items, paged.info, "/browse/recent"), {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
     }
 
     if (pathname === "/browse/updated") {
-      const paged = paginate(state.recentUpdated, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
+      const allUpdated = sortByDate(state.books, (entry) => entry.updatedAt || entry.addedAt);
+      const paged = paginate(allUpdated, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
       return new Response(renderBookListPage("Recently updated", paged.items, paged.info, "/browse/updated"), {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
@@ -218,7 +220,7 @@ Bun.serve({
 
     if (pathname === "/search") {
       const query = url.searchParams.get("q") || "";
-      const matches = searchBooks(state.books, query, 1000);
+      const matches = searchBooks(state.books, query, Number.MAX_SAFE_INTEGER);
       const basePath = `/search?q=${encodeURIComponent(query)}`;
       const paged = paginate(matches, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
       return new Response(renderBookListPage(`Search: ${query || "(empty query)"}`, paged.items, paged.info, basePath), {
