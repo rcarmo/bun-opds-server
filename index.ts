@@ -232,11 +232,13 @@ Bun.serve({
     if (download) {
       const entry = state.books.find((book) => book.librarySlug === download.librarySlug && book.bookId === download.bookId);
       if (!entry) return new Response("Not found", { status: 404 });
-      if (!existsSync(entry.epubPath)) return new Response("Missing file", { status: 404 });
-      return new Response(file(entry.epubPath), {
+      const targetPath = download.format === "pdf" ? entry.pdfPath : entry.epubPath;
+      if (!targetPath || !existsSync(targetPath)) return new Response("Missing file", { status: 404 });
+      const contentType = download.format === "pdf" ? "application/pdf" : "application/epub+zip";
+      return new Response(file(targetPath), {
         headers: {
-          "Content-Type": "application/epub+zip",
-          "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(`${entry.title}.epub`)}`,
+          "Content-Type": contentType,
+          "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(`${entry.title}.${download.format}`)}`,
         },
       });
     }

@@ -6,11 +6,20 @@ describe("parseDownloadPath", () => {
     expect(parseDownloadPath("/download/scifi/42/epub")).toEqual({
       librarySlug: "scifi",
       bookId: 42,
+      format: "epub",
+    });
+  });
+
+  test("parses valid PDF download routes", () => {
+    expect(parseDownloadPath("/download/scifi/42/pdf")).toEqual({
+      librarySlug: "scifi",
+      bookId: 42,
+      format: "pdf",
     });
   });
 
   test("rejects invalid download routes", () => {
-    expect(parseDownloadPath("/download/scifi/42/pdf")).toBeNull();
+    expect(parseDownloadPath("/download/scifi/42/mobi")).toBeNull();
   });
 });
 

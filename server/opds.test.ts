@@ -23,8 +23,9 @@ const entry: BookEntry = {
   publishedAt: "1969-01-01T00:00:00.000Z",
   tags: ["science fiction"],
   bookPath: "Le Guin, Ursula K/The Left Hand of Darkness (7)",
-  fileStem: "The Left Hand of Darkness",
+  formats: ["EPUB", "PDF"],
   epubPath: "/books/Main/The Left Hand of Darkness.epub",
+  pdfPath: "/books/Main/The Left Hand of Darkness.pdf",
   addedAt: "2026-04-01T00:00:00.000Z",
   updatedAt: "2026-04-02T00:00:00.000Z",
 };
@@ -34,7 +35,9 @@ describe("renderAcquisitionFeed", () => {
     const xml = renderAcquisitionFeed(config, "Recent additions", "recent", [entry]);
 
     expect(xml).toContain("application/epub+zip");
+    expect(xml).toContain("application/pdf");
     expect(xml).toContain("/download/main/7/epub");
+    expect(xml).toContain("/download/main/7/pdf");
     expect(xml).toContain("The Left Hand of Darkness");
     expect(xml).toContain("Hainish Cycle");
     expect(xml).toContain("science fiction");

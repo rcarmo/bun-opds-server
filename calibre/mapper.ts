@@ -27,12 +27,16 @@ function normalizeDescription(value?: string | null): string | undefined {
   return text || undefined;
 }
 
-/** Map a raw Calibre row to a merged EPUB book entry if the file exists. */
+/** Map a raw Calibre row to a merged downloadable book entry if at least one file exists. */
 export function mapRowToBook(library: Library, row: CalibreBookRow): BookEntry | undefined {
-  const epubPath = join(library.root, row.book_path, `${row.file_stem}.epub`);
-  if (!existsSync(epubPath)) return undefined;
+  const epubPath = row.epub_file_stem ? join(library.root, row.book_path, `${row.epub_file_stem}.epub`) : undefined;
+  const pdfPath = row.pdf_file_stem ? join(library.root, row.book_path, `${row.pdf_file_stem}.pdf`) : undefined;
+  const hasEpub = Boolean(epubPath && existsSync(epubPath));
+  const hasPdf = Boolean(pdfPath && existsSync(pdfPath));
+  if (!hasEpub && !hasPdf) return undefined;
 
   const coverPath = join(library.root, row.book_path, "cover.jpg");
+  const formats = parseList(row.formats).map((format) => format.toUpperCase()).filter((format) => (format === "EPUB" && hasEpub) || (format === "PDF" && hasPdf));
 
   return {
     uid: `${library.slug}:${row.book_id}`,
@@ -46,8 +50,9 @@ export function mapRowToBook(library: Library, row: CalibreBookRow): BookEntry |
     publishedAt: normalizeDate(row.published_at),
     tags: parseList(row.tags),
     bookPath: row.book_path,
-    fileStem: row.file_stem,
-    epubPath,
+    formats,
+    epubPath: hasEpub ? epubPath : undefined,
+    pdfPath: hasPdf ? pdfPath : undefined,
     coverPath: existsSync(coverPath) ? coverPath : undefined,
     addedAt: normalizeDate(row.added_at),
     updatedAt: normalizeDate(row.updated_at),

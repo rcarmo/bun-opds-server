@@ -10,7 +10,7 @@ export type Library = {
   dbPath: string;
 };
 
-/** One EPUB-capable book entry merged from a Calibre library. */
+/** One downloadable book entry merged from a Calibre library. */
 export type BookEntry = {
   /** Stable unique identifier `${librarySlug}:${bookId}`. */
   uid: string;
@@ -34,10 +34,12 @@ export type BookEntry = {
   tags: string[];
   /** Relative Calibre book path from `books.path`. */
   bookPath: string;
-  /** File stem from `data.name`. */
-  fileStem: string;
-  /** EPUB file path on disk. */
-  epubPath: string;
+  /** Available download formats for this entry. */
+  formats: string[];
+  /** Optional EPUB file path on disk. */
+  epubPath?: string;
+  /** Optional PDF file path on disk. */
+  pdfPath?: string;
   /** Optional cover file path on disk. */
   coverPath?: string;
   /** Added timestamp as ISO string if present. */
@@ -94,8 +96,12 @@ export type CalibreBookRow = {
   updated_at?: string | null;
   /** Optional publication timestamp. */
   published_at?: string | null;
-  /** File stem in the library. */
-  file_stem: string;
+  /** EPUB file stem in the library, if present. */
+  epub_file_stem?: string | null;
+  /** PDF file stem in the library, if present. */
+  pdf_file_stem?: string | null;
+  /** Comma-separated available formats. */
+  formats?: string | null;
   /** Comma-separated authors list. */
   authors?: string | null;
   /** Optional series name. */

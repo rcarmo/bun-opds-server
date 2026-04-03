@@ -29,9 +29,14 @@ function renderBookEntry(config: AppConfig, entry: BookEntry): string {
     entry.libraryName,
     entry.authors.length ? `Authors: ${entry.authors.join(", ")}` : undefined,
     entry.series ? `Series: ${entry.series}` : undefined,
+    entry.formats.length ? `Formats: ${entry.formats.join(", ")}` : undefined,
     entry.tags.length ? `Tags: ${entry.tags.slice(0, 8).join(", ")}` : undefined,
     entry.description,
   ].filter(Boolean);
+  const acquisitionLinks = [
+    entry.epubPath ? `<link rel="http://opds-spec.org/acquisition" type="application/epub+zip" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/epub`))}" />` : "",
+    entry.pdfPath ? `<link rel="http://opds-spec.org/acquisition" type="application/pdf" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/pdf`))}" />` : "",
+  ].filter(Boolean).join("\n");
 
   return `
   <entry>
@@ -43,7 +48,7 @@ function renderBookEntry(config: AppConfig, entry: BookEntry): string {
     ${entry.tags.map((tag) => `<category term="${xmlEscape(tag)}" label="${xmlEscape(tag)}" />`).join("\n")}
     <content type="text">${xmlEscape(metadataBits.join(" — "))}</content>
     ${coverLinks}
-    <link rel="http://opds-spec.org/acquisition" type="application/epub+zip" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/epub`))}" />
+    ${acquisitionLinks}
   </entry>`.trim();
 }
 

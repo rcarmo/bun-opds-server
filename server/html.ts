@@ -27,13 +27,20 @@ function shortDescription(value?: string): string | undefined {
 
 /** Build one HTML card for a book entry. */
 function renderBookCard(entry: BookEntry): string {
+  const preferredDownload = entry.epubPath ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub` : entry.pdfPath ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/pdf` : "#";
   const cover = entry.coverPath
-    ? `<a class="cover-link" href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub"><img class="cover" src="/cover/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}" alt="Cover for ${escapeHtml(entry.title)}" loading="lazy" /></a>`
+    ? `<a class="cover-link" href="${preferredDownload}"><img class="cover" src="/cover/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}" alt="Cover for ${escapeHtml(entry.title)}" loading="lazy" /></a>`
     : `<div class="cover placeholder">No cover</div>`;
   const summary = shortDescription(entry.description);
   const series = entry.series ? `<li><strong>Series:</strong> ${escapeHtml(entry.series)}</li>` : "";
   const published = entry.publishedAt ? `<li><strong>Published:</strong> ${escapeHtml(shortDate(entry.publishedAt))}</li>` : "";
   const tags = entry.tags.length ? `<li><strong>Tags:</strong> ${escapeHtml(entry.tags.slice(0, 6).join(", "))}</li>` : "";
+  const formats = entry.formats.length ? `<li><strong>Formats:</strong> ${escapeHtml(entry.formats.join(", "))}</li>` : "";
+  const downloadLinks = [
+    entry.epubPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub">Download EPUB</a>` : "",
+    entry.pdfPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/pdf">Download PDF</a>` : "",
+    `<a href="/opds/library/${encodeURIComponent(entry.librarySlug)}">Library feed</a>`,
+  ].filter(Boolean).join(" <span>·</span> ");
 
   return `
     <article class="book-card">
@@ -46,14 +53,11 @@ function renderBookCard(entry: BookEntry): string {
           ${series}
           ${published}
           <li><strong>Updated:</strong> ${escapeHtml(shortDate(entry.updatedAt || entry.addedAt))}</li>
+          ${formats}
           ${tags}
         </ul>
         ${summary ? `<p class="summary">${escapeHtml(summary)}</p>` : ""}
-        <p class="actions">
-          <a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub">Download EPUB</a>
-          <span>·</span>
-          <a href="/opds/library/${encodeURIComponent(entry.librarySlug)}">Library feed</a>
-        </p>
+        <p class="actions">${downloadLinks}</p>
       </div>
     </article>
   `;
