@@ -18,6 +18,8 @@ function makeBook(overrides: Partial<BookEntry> = {}): BookEntry {
     formats: ["EPUB"],
     epubPath: "/tmp/example.epub",
     pdfPath: undefined,
+    cbzPath: undefined,
+    cbrPath: undefined,
     addedAt: "2026-04-01T10:00:00.000Z",
     updatedAt: "2026-04-01T10:00:00.000Z",
     ...overrides,

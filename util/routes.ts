@@ -1,11 +1,11 @@
 /** Parse a download route into library slug, book id, and format. */
-export function parseDownloadPath(pathname: string): { librarySlug: string; bookId: number; format: "epub" | "pdf" } | null {
-  const match = pathname.match(/^\/download\/([^/]+)\/(\d+)\/(epub|pdf)$/);
+export function parseDownloadPath(pathname: string): { librarySlug: string; bookId: number; format: "epub" | "pdf" | "cbz" | "cbr" } | null {
+  const match = pathname.match(/^\/download\/([^/]+)\/(\d+)\/(epub|pdf|cbz|cbr)$/);
   if (!match) return null;
   return {
     librarySlug: decodeURIComponent(match[1]),
     bookId: Number.parseInt(match[2] || "0", 10),
-    format: match[3] as "epub" | "pdf",
+    format: match[3] as "epub" | "pdf" | "cbz" | "cbr",
   };
 }
 

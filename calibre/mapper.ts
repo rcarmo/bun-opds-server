@@ -31,12 +31,21 @@ function normalizeDescription(value?: string | null): string | undefined {
 export function mapRowToBook(library: Library, row: CalibreBookRow): BookEntry | undefined {
   const epubPath = row.epub_file_stem ? join(library.root, row.book_path, `${row.epub_file_stem}.epub`) : undefined;
   const pdfPath = row.pdf_file_stem ? join(library.root, row.book_path, `${row.pdf_file_stem}.pdf`) : undefined;
+  const cbzPath = row.cbz_file_stem ? join(library.root, row.book_path, `${row.cbz_file_stem}.cbz`) : undefined;
+  const cbrPath = row.cbr_file_stem ? join(library.root, row.book_path, `${row.cbr_file_stem}.cbr`) : undefined;
   const hasEpub = Boolean(epubPath && existsSync(epubPath));
   const hasPdf = Boolean(pdfPath && existsSync(pdfPath));
-  if (!hasEpub && !hasPdf) return undefined;
+  const hasCbz = Boolean(cbzPath && existsSync(cbzPath));
+  const hasCbr = Boolean(cbrPath && existsSync(cbrPath));
+  if (!hasEpub && !hasPdf && !hasCbz && !hasCbr) return undefined;
 
   const coverPath = join(library.root, row.book_path, "cover.jpg");
-  const formats = parseList(row.formats).map((format) => format.toUpperCase()).filter((format) => (format === "EPUB" && hasEpub) || (format === "PDF" && hasPdf));
+  const formats = parseList(row.formats).map((format) => format.toUpperCase()).filter((format) =>
+    (format === "EPUB" && hasEpub) ||
+    (format === "PDF" && hasPdf) ||
+    (format === "CBZ" && hasCbz) ||
+    (format === "CBR" && hasCbr)
+  );
 
   return {
     uid: `${library.slug}:${row.book_id}`,
@@ -53,6 +62,8 @@ export function mapRowToBook(library: Library, row: CalibreBookRow): BookEntry |
     formats,
     epubPath: hasEpub ? epubPath : undefined,
     pdfPath: hasPdf ? pdfPath : undefined,
+    cbzPath: hasCbz ? cbzPath : undefined,
+    cbrPath: hasCbr ? cbrPath : undefined,
     coverPath: existsSync(coverPath) ? coverPath : undefined,
     addedAt: normalizeDate(row.added_at),
     updatedAt: normalizeDate(row.updated_at),

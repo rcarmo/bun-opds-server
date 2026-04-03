@@ -18,6 +18,11 @@ describe("parseDownloadPath", () => {
     });
   });
 
+  test("parses valid CBZ and CBR download routes", () => {
+    expect(parseDownloadPath("/download/comics/7/cbz")?.format).toBe("cbz");
+    expect(parseDownloadPath("/download/comics/8/cbr")?.format).toBe("cbr");
+  });
+
   test("rejects invalid download routes", () => {
     expect(parseDownloadPath("/download/scifi/42/mobi")).toBeNull();
   });

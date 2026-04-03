@@ -40,6 +40,10 @@ export type BookEntry = {
   epubPath?: string;
   /** Optional PDF file path on disk. */
   pdfPath?: string;
+  /** Optional CBZ file path on disk. */
+  cbzPath?: string;
+  /** Optional CBR file path on disk. */
+  cbrPath?: string;
   /** Optional cover file path on disk. */
   coverPath?: string;
   /** Added timestamp as ISO string if present. */
@@ -100,6 +104,10 @@ export type CalibreBookRow = {
   epub_file_stem?: string | null;
   /** PDF file stem in the library, if present. */
   pdf_file_stem?: string | null;
+  /** CBZ file stem in the library, if present. */
+  cbz_file_stem?: string | null;
+  /** CBR file stem in the library, if present. */
+  cbr_file_stem?: string | null;
   /** Comma-separated available formats. */
   formats?: string | null;
   /** Comma-separated authors list. */

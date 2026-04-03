@@ -36,6 +36,8 @@ function renderBookEntry(config: AppConfig, entry: BookEntry): string {
   const acquisitionLinks = [
     entry.epubPath ? `<link rel="http://opds-spec.org/acquisition" type="application/epub+zip" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/epub`))}" />` : "",
     entry.pdfPath ? `<link rel="http://opds-spec.org/acquisition" type="application/pdf" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/pdf`))}" />` : "",
+    entry.cbzPath ? `<link rel="http://opds-spec.org/acquisition" type="application/vnd.comicbook+zip" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/cbz`))}" />` : "",
+    entry.cbrPath ? `<link rel="http://opds-spec.org/acquisition" type="application/vnd.comicbook-rar" href="${xmlEscape(abs(config, `/download/${entry.librarySlug}/${entry.bookId}/cbr`))}" />` : "",
   ].filter(Boolean).join("\n");
 
   return `

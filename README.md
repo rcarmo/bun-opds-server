@@ -8,7 +8,7 @@ It scans for `metadata.db` files, merges EPUB-capable books across libraries, de
 
 - recursively discovers Calibre libraries under `CALIBRE_ROOT`
 - reads `metadata.db` in read-only mode
-- merges all books with available **EPUB** and/or **PDF** files
+- merges all books with available **EPUB**, **PDF**, **CBZ**, and/or **CBR** files
 - deduplicates entries by normalized book title, keeping the newest copy
 - exposes OPDS feeds for:
   - recent additions (capped for ereader compatibility)
@@ -18,7 +18,7 @@ It scans for `metadata.db` files, merges EPUB-capable books across libraries, de
 - exposes lightweight HTML browse pages with:
   - constrained cover display
   - minimal metadata (series, tags, updated/published dates, short description)
-  - direct EPUB/PDF download links when available
+  - direct EPUB/PDF/CBZ/CBR download links when available
 - supports pagination for browse/feed views
 - keeps HTML browse/search views unbounded by the feed cap so full libraries remain browseable
 - supports scored search ordering across title, authors, series, tags, and library
@@ -58,6 +58,8 @@ This is aimed at setups where:
 ### Asset / download
 - `/download/:librarySlug/:bookId/epub`
 - `/download/:librarySlug/:bookId/pdf`
+- `/download/:librarySlug/:bookId/cbz`
+- `/download/:librarySlug/:bookId/cbr`
 - `/cover/:librarySlug/:bookId`
 
 Search results are ranked primarily by title matches, then by author/series/tag/library matches, with recency as a tiebreaker. OPDS feeds stay capped to the configured feed limit; HTML browse and search views can paginate through the full result set.
@@ -148,8 +150,8 @@ For semver tags like `v0.1.0`, the workflow publishes tags such as:
 Example:
 
 ```bash
-git tag v0.2.2
-git push origin v0.2.2
+git tag v0.2.3
+git push origin v0.2.3
 ```
 
 ## Design notes
@@ -159,7 +161,7 @@ git push origin v0.2.2
 - cover display in HTML views is size-constrained with CSS; server-side physical resizing is still a future improvement
 - currently deduplicates by normalized title and keeps the newest matching item
 - search uses simple weighted scoring across title, authors, series, tags, and library name
-- currently exposes a **minimal OPDS 1.x-style feed** aimed at ebook readers, with EPUB/PDF acquisition links when present
+- currently exposes a **minimal OPDS 1.x-style feed** aimed at ebook readers, with EPUB/PDF/CBZ/CBR acquisition links when present
 
 ## Next likely steps
 

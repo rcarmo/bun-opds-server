@@ -15,9 +15,11 @@ const entry: BookEntry = {
   publishedAt: "1965-01-01T00:00:00.000Z",
   tags: ["science fiction", "classic"],
   bookPath: "Herbert, Frank/Dune (7)",
-  formats: ["EPUB", "PDF"],
+  formats: ["EPUB", "PDF", "CBZ", "CBR"],
   epubPath: "/books/dune.epub",
   pdfPath: "/books/dune.pdf",
+  cbzPath: "/books/dune.cbz",
+  cbrPath: "/books/dune.cbr",
   coverPath: "/books/cover.jpg",
   addedAt: "2026-04-01T00:00:00.000Z",
   updatedAt: "2026-04-02T00:00:00.000Z",
@@ -36,6 +38,8 @@ describe("renderBookListPage", () => {
     const html = renderBookListPage("Recent", [entry], pageInfo, "/browse/recent");
     expect(html).toContain("Download EPUB");
     expect(html).toContain("Download PDF");
+    expect(html).toContain("Download CBZ");
+    expect(html).toContain("Download CBR");
     expect(html).toContain("Frank Herbert");
     expect(html).toContain("Series:");
     expect(html).toContain("science fiction");
@@ -43,5 +47,7 @@ describe("renderBookListPage", () => {
     expect(html).toContain("max-height: 144px");
     expect(html).toContain("/download/main/7/epub");
     expect(html).toContain("/download/main/7/pdf");
+    expect(html).toContain("/download/main/7/cbz");
+    expect(html).toContain("/download/main/7/cbr");
   });
 });

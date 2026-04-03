@@ -1,4 +1,4 @@
-/** Read-only query for books with EPUB and/or PDF formats within one Calibre library. */
+/** Read-only query for books with supported downloadable formats within one Calibre library. */
 export const EPUB_BOOKS_QUERY = `
 SELECT
   b.id AS book_id,
@@ -9,6 +9,8 @@ SELECT
   b.pubdate AS published_at,
   MAX(CASE WHEN UPPER(d.format) = 'EPUB' THEN d.name END) AS epub_file_stem,
   MAX(CASE WHEN UPPER(d.format) = 'PDF' THEN d.name END) AS pdf_file_stem,
+  MAX(CASE WHEN UPPER(d.format) = 'CBZ' THEN d.name END) AS cbz_file_stem,
+  MAX(CASE WHEN UPPER(d.format) = 'CBR' THEN d.name END) AS cbr_file_stem,
   GROUP_CONCAT(DISTINCT UPPER(d.format)) AS formats,
   (
     SELECT GROUP_CONCAT(a.name, ', ')
@@ -35,7 +37,7 @@ JOIN data d
   ON d.book = b.id
 LEFT JOIN comments c
   ON c.book = b.id
-WHERE UPPER(d.format) IN ('EPUB', 'PDF')
+WHERE UPPER(d.format) IN ('EPUB', 'PDF', 'CBZ', 'CBR')
 GROUP BY b.id, b.title, b.path, b.timestamp, b.last_modified, b.pubdate, c.text
 ORDER BY b.last_modified DESC
 `;

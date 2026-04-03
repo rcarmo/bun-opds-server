@@ -27,7 +27,15 @@ function shortDescription(value?: string): string | undefined {
 
 /** Build one HTML card for a book entry. */
 function renderBookCard(entry: BookEntry): string {
-  const preferredDownload = entry.epubPath ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub` : entry.pdfPath ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/pdf` : "#";
+  const preferredDownload = entry.epubPath
+    ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub`
+    : entry.pdfPath
+      ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/pdf`
+      : entry.cbzPath
+        ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/cbz`
+        : entry.cbrPath
+          ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/cbr`
+          : "#";
   const cover = entry.coverPath
     ? `<a class="cover-link" href="${preferredDownload}"><img class="cover" src="/cover/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}" alt="Cover for ${escapeHtml(entry.title)}" loading="lazy" /></a>`
     : `<div class="cover placeholder">No cover</div>`;
@@ -39,6 +47,8 @@ function renderBookCard(entry: BookEntry): string {
   const downloadLinks = [
     entry.epubPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub">Download EPUB</a>` : "",
     entry.pdfPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/pdf">Download PDF</a>` : "",
+    entry.cbzPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/cbz">Download CBZ</a>` : "",
+    entry.cbrPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/cbr">Download CBR</a>` : "",
     `<a href="/opds/library/${encodeURIComponent(entry.librarySlug)}">Library feed</a>`,
   ].filter(Boolean).join(" <span>·</span> ");
 
