@@ -13,7 +13,13 @@ It scans for `metadata.db` files, merges EPUB-capable books across libraries, de
 - exposes OPDS feeds for:
   - recent additions
   - recently updated
+  - per-library views
   - search results
+- exposes lightweight HTML browse pages with:
+  - constrained cover display
+  - minimal metadata
+  - direct EPUB download links
+- supports pagination for browse/feed views
 - serves direct EPUB downloads
 - optionally serves cover images
 - supports optional HTTP basic auth
@@ -29,12 +35,25 @@ This is aimed at setups where:
 
 ## Endpoints
 
+### JSON / service
 - `/health`
 - `/libraries`
+
+### OPDS
 - `/opds`
 - `/opds/recent`
 - `/opds/updated`
+- `/opds/library/:librarySlug`
 - `/opds/search?q=dune`
+
+### HTML browse views
+- `/`
+- `/browse/recent`
+- `/browse/updated`
+- `/library/:librarySlug`
+- `/search?q=dune`
+
+### Asset / download
 - `/download/:librarySlug/:bookId/epub`
 - `/cover/:librarySlug/:bookId`
 
@@ -124,23 +143,24 @@ For semver tags like `v0.1.0`, the workflow publishes tags such as:
 Example:
 
 ```bash
-git tag v0.1.3
-git push origin v0.1.3
+git tag v0.1.4
+git push origin v0.1.4
 ```
 
 ## Design notes
 
 - intentionally **read-only**
 - currently assumes cover images live at `cover.jpg` inside each Calibre book directory
+- cover display in HTML views is size-constrained with CSS, but images are not yet physically resized server-side
 - currently deduplicates by normalized title and keeps the newest matching item
 - search is a simple substring match across title, authors, and library name
 - currently exposes a **minimal OPDS 1.x-style feed** aimed at ebook readers
 
 ## Next likely steps
 
-- per-library feeds
-- pagination
 - better cover detection
+- server-side thumbnail generation / resizing
+- richer metadata display
 - deployment examples (Compose / reverse proxy)
 - repository polish (license choice, CI, release tagging)
 

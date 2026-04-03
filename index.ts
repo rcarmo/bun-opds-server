@@ -5,9 +5,11 @@ import { loadConfig } from "./config.ts";
 import { discoverLibraries } from "./calibre/discover.ts";
 import { mapRowToBook } from "./calibre/mapper.ts";
 import { readLibraryBooks } from "./calibre/sqlite.ts";
+import { renderBookListPage, renderLandingPage } from "./server/html.ts";
 import { renderAcquisitionFeed, renderNavigationFeed } from "./server/opds.ts";
 import type { AppConfig, AppState, BookEntry, Library } from "./types.ts";
 import { dedupeByTitle, sortByDate } from "./util/catalog.ts";
+import { paginate } from "./util/pagination.ts";
 import { parseCoverPath, parseDownloadPath } from "./util/routes.ts";
 import { searchBooks } from "./util/search.ts";
 
@@ -112,7 +114,13 @@ Bun.serve({
     const url = new URL(request.url);
     const pathname = url.pathname;
 
-    if (pathname === "/" || pathname === "/health") {
+    if (pathname === "/") {
+      return new Response(renderLandingPage(config, state), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
+    if (pathname === "/health") {
       return Response.json({
         ok: true,
         refreshedAt: state.refreshedAt,
@@ -130,26 +138,92 @@ Bun.serve({
       const xml = renderNavigationFeed(config, "Calibre OPDS", "root", [
         { href: "/opds/recent", title: `Recent additions (${state.recentAdded.length})` },
         { href: "/opds/updated", title: `Recently updated (${state.recentUpdated.length})` },
+        ...state.libraries.map((library) => ({ href: `/opds/library/${encodeURIComponent(library.slug)}`, title: `Library: ${library.name}` })),
         { href: "/opds/search?q=dune", title: "Search (replace ?q=... with your query)" },
       ]);
       return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=navigation; charset=utf-8" } });
     }
 
     if (pathname === "/opds/recent") {
-      const xml = renderAcquisitionFeed(config, "Recent additions", "recent", state.recentAdded);
+      const paged = paginate(state.recentAdded, url.searchParams.get("page"), url.searchParams.get("pageSize"), config.feedLimit);
+      const xml = renderAcquisitionFeed(config, "Recent additions", "recent", paged.items, {
+        selfPath: `/opds/recent?page=${paged.info.page}`,
+        pageInfo: paged.info,
+        basePath: "/opds/recent",
+      });
       return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=acquisition; charset=utf-8" } });
     }
 
     if (pathname === "/opds/updated") {
-      const xml = renderAcquisitionFeed(config, "Recently updated", "updated", state.recentUpdated);
+      const paged = paginate(state.recentUpdated, url.searchParams.get("page"), url.searchParams.get("pageSize"), config.feedLimit);
+      const xml = renderAcquisitionFeed(config, "Recently updated", "updated", paged.items, {
+        selfPath: `/opds/updated?page=${paged.info.page}`,
+        pageInfo: paged.info,
+        basePath: "/opds/updated",
+      });
+      return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=acquisition; charset=utf-8" } });
+    }
+
+    if (pathname.startsWith("/opds/library/")) {
+      const librarySlug = decodeURIComponent(pathname.slice("/opds/library/".length));
+      const library = state.libraries.find((item) => item.slug === librarySlug);
+      if (!library) return new Response("Not found", { status: 404 });
+      const libraryBooks = sortByDate(state.books.filter((book) => book.librarySlug === librarySlug), (entry) => entry.updatedAt || entry.addedAt);
+      const paged = paginate(libraryBooks, url.searchParams.get("page"), url.searchParams.get("pageSize"), config.feedLimit);
+      const xml = renderAcquisitionFeed(config, `Library: ${library.name}`, `library/${librarySlug}`, paged.items, {
+        selfPath: `/opds/library/${encodeURIComponent(librarySlug)}?page=${paged.info.page}`,
+        pageInfo: paged.info,
+        basePath: `/opds/library/${encodeURIComponent(librarySlug)}`,
+      });
       return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=acquisition; charset=utf-8" } });
     }
 
     if (pathname === "/opds/search") {
       const query = url.searchParams.get("q") || "";
-      const matches = searchBooks(state.books, query, config.feedLimit);
-      const xml = renderAcquisitionFeed(config, `Search results for: ${query || "(empty query)"}`, `search?q=${encodeURIComponent(query)}`, matches);
+      const matches = searchBooks(state.books, query, config.feedLimit * 10);
+      const paged = paginate(matches, url.searchParams.get("page"), url.searchParams.get("pageSize"), config.feedLimit);
+      const basePath = `/opds/search?q=${encodeURIComponent(query)}`;
+      const xml = renderAcquisitionFeed(config, `Search results for: ${query || "(empty query)"}`, `search?q=${encodeURIComponent(query)}`, paged.items, {
+        selfPath: `${basePath}&page=${paged.info.page}`,
+        pageInfo: paged.info,
+        basePath,
+      });
       return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=acquisition; charset=utf-8" } });
+    }
+
+    if (pathname === "/browse/recent") {
+      const paged = paginate(state.recentAdded, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
+      return new Response(renderBookListPage("Recent additions", paged.items, paged.info, "/browse/recent"), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
+    if (pathname === "/browse/updated") {
+      const paged = paginate(state.recentUpdated, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
+      return new Response(renderBookListPage("Recently updated", paged.items, paged.info, "/browse/updated"), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
+    if (pathname.startsWith("/library/")) {
+      const librarySlug = decodeURIComponent(pathname.slice("/library/".length));
+      const library = state.libraries.find((item) => item.slug === librarySlug);
+      if (!library) return new Response("Not found", { status: 404 });
+      const libraryBooks = sortByDate(state.books.filter((book) => book.librarySlug === librarySlug), (entry) => entry.updatedAt || entry.addedAt);
+      const paged = paginate(libraryBooks, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
+      return new Response(renderBookListPage(`Library: ${library.name}`, paged.items, paged.info, `/library/${encodeURIComponent(librarySlug)}`), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
+    if (pathname === "/search") {
+      const query = url.searchParams.get("q") || "";
+      const matches = searchBooks(state.books, query, 1000);
+      const basePath = `/search?q=${encodeURIComponent(query)}`;
+      const paged = paginate(matches, url.searchParams.get("page"), url.searchParams.get("pageSize"), 24);
+      return new Response(renderBookListPage(`Search: ${query || "(empty query)"}`, paged.items, paged.info, basePath), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
     const download = parseDownloadPath(pathname);

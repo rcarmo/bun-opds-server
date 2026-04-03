@@ -1,4 +1,5 @@
 import type { AppConfig, BookEntry } from "../types.ts";
+import type { PageInfo } from "../util/pagination.ts";
 import { xmlEscape } from "./xml.ts";
 
 /** Build an absolute URL from the configured base URL and a relative path. */
@@ -61,15 +62,36 @@ ${entries}
 }
 
 /** Build an OPDS acquisition feed from EPUB book entries. */
-export function renderAcquisitionFeed(config: AppConfig, title: string, id: string, entries: BookEntry[]): string {
+export function renderAcquisitionFeed(
+  config: AppConfig,
+  title: string,
+  id: string,
+  entries: BookEntry[],
+  options?: { selfPath?: string; pageInfo?: PageInfo; basePath?: string },
+): string {
   const updated = new Date().toISOString();
   const rendered = entries.map((entry) => renderBookEntry(config, entry)).join("\n");
+  const selfPath = options?.selfPath || `/opds/${id}`;
+  const paginationLinks: string[] = [];
+  const pageInfo = options?.pageInfo;
+  const basePath = options?.basePath || selfPath;
+
+  if (pageInfo) {
+    if (pageInfo.page > 1) {
+      paginationLinks.push(`  <link rel="previous" href="${xmlEscape(abs(config, `${basePath}${basePath.includes("?") ? "&" : "?"}page=${pageInfo.page - 1}`))}" />`);
+    }
+    if (pageInfo.page < pageInfo.totalPages) {
+      paginationLinks.push(`  <link rel="next" href="${xmlEscape(abs(config, `${basePath}${basePath.includes("?") ? "&" : "?"}page=${pageInfo.page + 1}`))}" />`);
+    }
+  }
+
   return `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:opds="http://opds-spec.org/2010/catalog">
   <id>${xmlEscape(`tag:calibre-opds,2026:${id}`)}</id>
   <title>${xmlEscape(title)}</title>
   <updated>${xmlEscape(updated)}</updated>
-  <link rel="self" href="${xmlEscape(abs(config, `/opds/${id}`))}" />
+  <link rel="self" href="${xmlEscape(abs(config, selfPath))}" />
+${paginationLinks.join("\n")}
 ${rendered}
 </feed>`;
 }
