@@ -9,6 +9,7 @@ import { renderAcquisitionFeed, renderNavigationFeed } from "./server/opds.ts";
 import type { AppConfig, AppState, BookEntry, Library } from "./types.ts";
 import { dedupeByTitle, sortByDate } from "./util/catalog.ts";
 import { parseCoverPath, parseDownloadPath } from "./util/routes.ts";
+import { searchBooks } from "./util/search.ts";
 
 /** Create an empty application state. */
 function emptyState(): AppState {
@@ -129,6 +130,7 @@ Bun.serve({
       const xml = renderNavigationFeed(config, "Calibre OPDS", "root", [
         { href: "/opds/recent", title: `Recent additions (${state.recentAdded.length})` },
         { href: "/opds/updated", title: `Recently updated (${state.recentUpdated.length})` },
+        { href: "/opds/search?q=dune", title: "Search (replace ?q=... with your query)" },
       ]);
       return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=navigation; charset=utf-8" } });
     }
@@ -140,6 +142,13 @@ Bun.serve({
 
     if (pathname === "/opds/updated") {
       const xml = renderAcquisitionFeed(config, "Recently updated", "updated", state.recentUpdated);
+      return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=acquisition; charset=utf-8" } });
+    }
+
+    if (pathname === "/opds/search") {
+      const query = url.searchParams.get("q") || "";
+      const matches = searchBooks(state.books, query, config.feedLimit);
+      const xml = renderAcquisitionFeed(config, `Search results for: ${query || "(empty query)"}`, `search?q=${encodeURIComponent(query)}`, matches);
       return new Response(xml, { headers: { "Content-Type": "application/atom+xml;profile=opds-catalog;kind=acquisition; charset=utf-8" } });
     }
 

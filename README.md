@@ -2,16 +2,18 @@
 
 A small read-only OPDS server for **multiple Calibre libraries under one filesystem tree**.
 
-It scans for `metadata.db` files, merges EPUB-capable books across libraries, and exposes simple OPDS feeds for ebook readers.
+It scans for `metadata.db` files, merges EPUB-capable books across libraries, deduplicates by title, and exposes simple OPDS feeds for ebook readers.
 
 ## Current MVP
 
 - recursively discovers Calibre libraries under `CALIBRE_ROOT`
 - reads `metadata.db` in read-only mode
 - merges all books with available **EPUB** files
+- deduplicates entries by normalized book title, keeping the newest copy
 - exposes OPDS feeds for:
   - recent additions
   - recently updated
+  - search results
 - serves direct EPUB downloads
 - optionally serves cover images
 - supports optional HTTP basic auth
@@ -32,6 +34,7 @@ This is aimed at setups where:
 - `/opds`
 - `/opds/recent`
 - `/opds/updated`
+- `/opds/search?q=dune`
 - `/download/:librarySlug/:bookId/epub`
 - `/cover/:librarySlug/:bookId`
 
@@ -129,13 +132,13 @@ git push origin v0.1.1
 
 - intentionally **read-only**
 - currently assumes cover images live at `cover.jpg` inside each Calibre book directory
-- currently does **not** deduplicate titles across libraries
+- currently deduplicates by normalized title and keeps the newest matching item
+- search is a simple substring match across title, authors, and library name
 - currently exposes a **minimal OPDS 1.x-style feed** aimed at ebook readers
 
 ## Next likely steps
 
 - per-library feeds
-- search endpoint
 - pagination
 - better cover detection
 - deployment examples (Compose / reverse proxy)
