@@ -50,4 +50,4 @@ describe("searchBooks", () => {
   test("returns empty for blank query", () => {
     expect(searchBooks(entries, "   ")).toEqual([]);
   });
-}
+});
