@@ -6,6 +6,7 @@ COPY package.json tsconfig.json ./
 COPY index.ts config.ts types.ts ./
 COPY calibre ./calibre
 COPY server ./server
+COPY util ./util
 
 ENV HOST=0.0.0.0 \
     PORT=8787 \

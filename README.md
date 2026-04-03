@@ -146,8 +146,8 @@ For semver tags like `v0.1.0`, the workflow publishes tags such as:
 Example:
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.2.1
+git push origin v0.2.1
 ```
 
 ## Design notes
