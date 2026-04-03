@@ -7,15 +7,8 @@ import { mapRowToBook } from "./calibre/mapper.ts";
 import { readLibraryBooks } from "./calibre/sqlite.ts";
 import { renderAcquisitionFeed, renderNavigationFeed } from "./server/opds.ts";
 import type { AppConfig, AppState, BookEntry, Library } from "./types.ts";
-
-/** Sort newest-first using a selected timestamp field. */
-function sortByDate(entries: BookEntry[], pick: (entry: BookEntry) => string | undefined): BookEntry[] {
-  return [...entries].sort((a, b) => {
-    const ta = Date.parse(pick(a) || "1970-01-01T00:00:00Z");
-    const tb = Date.parse(pick(b) || "1970-01-01T00:00:00Z");
-    return tb - ta;
-  });
-}
+import { dedupeByTitle, sortByDate } from "./util/catalog.ts";
+import { parseCoverPath, parseDownloadPath } from "./util/routes.ts";
 
 /** Create an empty application state. */
 function emptyState(): AppState {
@@ -40,12 +33,14 @@ async function buildState(config: AppConfig): Promise<AppState> {
     }
   }
 
+  const dedupedBooks = dedupeByTitle(books);
+
   return {
     refreshedAt: new Date().toISOString(),
     libraries,
-    books,
-    recentAdded: sortByDate(books, (entry) => entry.addedAt).slice(0, config.feedLimit),
-    recentUpdated: sortByDate(books, (entry) => entry.updatedAt || entry.addedAt).slice(0, config.feedLimit),
+    books: dedupedBooks,
+    recentAdded: sortByDate(dedupedBooks, (entry) => entry.addedAt).slice(0, config.feedLimit),
+    recentUpdated: sortByDate(dedupedBooks, (entry) => entry.updatedAt || entry.addedAt).slice(0, config.feedLimit),
   };
 }
 
@@ -79,20 +74,6 @@ function jsonSummary(state: AppState) {
     bookCount: state.books.length,
     libraries: state.libraries.map((library: Library) => ({ slug: library.slug, name: library.name, root: library.root })),
   };
-}
-
-/** Parse a download route into library slug and book id. */
-function parseDownloadPath(pathname: string): { librarySlug: string; bookId: number } | null {
-  const match = pathname.match(/^\/download\/([^/]+)\/(\d+)\/epub$/);
-  if (!match) return null;
-  return { librarySlug: decodeURIComponent(match[1]), bookId: Number.parseInt(match[2] || "0", 10) };
-}
-
-/** Parse a cover route into library slug and book id. */
-function parseCoverPath(pathname: string): { librarySlug: string; bookId: number } | null {
-  const match = pathname.match(/^\/cover\/([^/]+)\/(\d+)$/);
-  if (!match) return null;
-  return { librarySlug: decodeURIComponent(match[1]), bookId: Number.parseInt(match[2] || "0", 10) };
 }
 
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
