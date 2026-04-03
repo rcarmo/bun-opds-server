@@ -1,0 +1,18 @@
+services:
+  bun-opds-server:
+    image: ghcr.io/rcarmo/bun-opds-server:latest
+    container_name: bun-opds-server
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      CALIBRE_ROOT: /books
+      HOST: 0.0.0.0
+      PORT: 8787
+      BASE_URL: http://localhost:8787
+      FEED_LIMIT: 100
+      REFRESH_MS: 600000
+      # BASIC_AUTH_USER: reader
+      # BASIC_AUTH_PASS: change-me
+    volumes:
+      - /path/to/books:/books:ro

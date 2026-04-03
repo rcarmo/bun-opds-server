@@ -72,6 +72,43 @@ bun run index.ts --help
 bun run --watch index.ts
 ```
 
+## Docker image
+
+Tagged releases publish a container image to:
+
+- `ghcr.io/rcarmo/bun-opds-server`
+
+### Run with Docker
+
+```bash
+docker run --rm -p 8787:8787 \
+  -e CALIBRE_ROOT=/books \
+  -e BASE_URL=http://localhost:8787 \
+  -v /path/to/books:/books:ro \
+  ghcr.io/rcarmo/bun-opds-server:latest
+```
+
+### Run with Docker Compose
+
+A sample Compose file is included as:
+
+- `docker-compose.yml`
+
+```bash
+docker compose up -d
+```
+
+## Releases
+
+A GitHub Actions workflow builds and publishes the container image on every pushed tag matching `v*`.
+
+Example:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## Design notes
 
 - intentionally **read-only**
