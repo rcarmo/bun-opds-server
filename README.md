@@ -4,6 +4,8 @@ A small read-only OPDS server for **multiple Calibre libraries under one filesys
 
 It scans for `metadata.db` files, merges EPUB-capable books across libraries, deduplicates by title, and exposes simple OPDS feeds for ebook readers.
 
+It is also intended to work well with [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader) on the XteInk X4 and similar eink devices that can consume OPDS catalogs and direct downloads.
+
 ## Current MVP
 
 - recursively discovers Calibre libraries under `CALIBRE_ROOT`
