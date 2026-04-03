@@ -26,7 +26,7 @@ It is intended to work especially well with [CrossPoint Reader](https://github.c
 - supports pagination for browse/feed views
 - keeps HTML browse/search views unbounded by the feed cap so full libraries remain browseable
 - supports scored search ordering across title, authors, series, tags, and library
-- serves direct EPUB downloads
+- serves direct EPUB/PDF/CBZ/CBR downloads when present
 - optionally serves cover images
 - supports optional HTTP basic auth
 
@@ -37,7 +37,7 @@ This is aimed at setups where:
 - there are **multiple separate Calibre libraries**
 - they live under one parent tree
 - a reader should be able to point at **one OPDS endpoint**
-- the main use case is: *show me the most recent books and let me download EPUBs*
+- the main use case is: *show me the most recent books and let me download them in whatever format is available*
 
 ## Endpoints
 
@@ -172,14 +172,4 @@ git push origin v0.2.3
 - better cover detection
 - server-side thumbnail generation / resizing
 - deployment examples (Compose / reverse proxy)
-- repository polish (license choice, CI, release tagging)
-
-## Publishing notes
-
-This project lives under `/workspace/projects/bun-opds-server` and has been lightly cleaned up for GitHub publication:
-
-- `.gitignore` added
-- `.env.example` added
-- README rewritten for public consumption
-
-License: **MIT**.
+- additional OPDS compatibility testing across readers and eink devices
