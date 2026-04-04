@@ -21,6 +21,7 @@ export function loadConfig(): AppConfig {
   const baseUrl = trimTrailingSlash(process.env.BASE_URL || `http://localhost:${port}`);
   const feedLimit = intEnv("FEED_LIMIT", 100);
   const refreshMs = intEnv("REFRESH_MS", 10 * 60 * 1000);
+  const koSyncDbPath = process.env.KOSYNC_DB_PATH || `${calibreRoot.replace(/\/$/, "")}/koreader.db`;
 
   return {
     calibreRoot,
@@ -31,5 +32,6 @@ export function loadConfig(): AppConfig {
     refreshMs,
     basicAuthUser: process.env.BASIC_AUTH_USER,
     basicAuthPass: process.env.BASIC_AUTH_PASS,
+    koSyncDbPath,
   };
 }

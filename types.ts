@@ -70,6 +70,8 @@ export type AppConfig = {
   basicAuthUser?: string;
   /** Optional basic auth password. */
   basicAuthPass?: string;
+  /** SQLite path for KOReader progress sync state. */
+  koSyncDbPath: string;
 };
 
 /** Aggregated in-memory view of all discovered libraries and books. */

@@ -8,6 +8,7 @@ import { readLibraryBooks } from "./calibre/sqlite.ts";
 import { renderBookListPage, renderLandingPage } from "./server/html.ts";
 import { renderAcquisitionFeed, renderNavigationFeed } from "./server/opds.ts";
 import type { AppConfig, AppState, BookEntry, Library } from "./types.ts";
+import { getKoSyncAuth, KoSyncStore, readBodyParams } from "./koreader/sync.ts";
 import { dedupeByTitle, sortByDate } from "./util/catalog.ts";
 import { paginate } from "./util/pagination.ts";
 import { parseCoverPath, parseDownloadPath } from "./util/routes.ts";
@@ -85,6 +86,7 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
 }
 
 const config = loadConfig();
+const koSync = new KoSyncStore(config.koSyncDbPath);
 let state: AppState = emptyState();
 let lastRefreshError: string | undefined;
 
@@ -108,11 +110,89 @@ Bun.serve({
   hostname: config.host,
   port: config.port,
   async fetch(request) {
-    const authFailure = authorize(request, config);
-    if (authFailure) return authFailure;
-
     const url = new URL(request.url);
     const pathname = url.pathname;
+
+    const isKoSyncRoute = pathname === "/users/create"
+      || pathname === "/users/auth"
+      || pathname === "/syncs/progress"
+      || pathname.startsWith("/syncs/progress/");
+
+    if (!isKoSyncRoute) {
+      const authFailure = authorize(request, config);
+      if (authFailure) return authFailure;
+    }
+
+    if (pathname === "/users/create" && request.method === "POST") {
+      const params = await readBodyParams(request);
+      const username = params.username?.trim();
+      const password = params.password?.trim();
+      if (!username || !password) {
+        return Response.json({ error: "username and password are required" }, { status: 400 });
+      }
+      const created = koSync.createUser({ username, key: password });
+      if (!created) {
+        return Response.json({ error: "user already exists" }, { status: 402 });
+      }
+      return Response.json({ username }, { status: 201 });
+    }
+
+    if (pathname === "/users/auth" && request.method === "GET") {
+      const auth = getKoSyncAuth(request);
+      if (!auth) {
+        return Response.json({ error: "missing x-auth-user or x-auth-key" }, { status: 401 });
+      }
+      const ok = koSync.ensureUser(auth);
+      if (!ok) {
+        return Response.json({ error: "invalid credentials" }, { status: 401 });
+      }
+      return Response.json({ authorized: true, username: auth.username });
+    }
+
+    if (pathname === "/syncs/progress" && request.method === "PUT") {
+      const auth = getKoSyncAuth(request);
+      if (!auth) {
+        return Response.json({ error: "missing x-auth-user or x-auth-key" }, { status: 401 });
+      }
+      const ok = koSync.ensureUser(auth);
+      if (!ok) {
+        return Response.json({ error: "invalid credentials" }, { status: 401 });
+      }
+      const params = await readBodyParams(request);
+      const document = params.document?.trim();
+      const progress = params.progress?.trim();
+      const percentageRaw = params.percentage?.trim();
+      const device = params.device?.trim();
+      const deviceId = params.device_id?.trim();
+      const percentage = percentageRaw ? Number.parseFloat(percentageRaw) : Number.NaN;
+
+      if (!document || !progress || !Number.isFinite(percentage)) {
+        return Response.json({ error: "document, progress and percentage are required" }, { status: 400 });
+      }
+
+      const stored = koSync.updateProgress(auth, {
+        document,
+        progress,
+        percentage,
+        device,
+        device_id: deviceId,
+      });
+      return Response.json(stored, { status: 200 });
+    }
+
+    if (pathname.startsWith("/syncs/progress/") && request.method === "GET") {
+      const auth = getKoSyncAuth(request);
+      if (!auth) {
+        return Response.json({ error: "missing x-auth-user or x-auth-key" }, { status: 401 });
+      }
+      const ok = koSync.ensureUser(auth);
+      if (!ok) {
+        return Response.json({ error: "invalid credentials" }, { status: 401 });
+      }
+      const document = decodeURIComponent(pathname.slice("/syncs/progress/".length));
+      const stored = koSync.getProgress(auth, document);
+      return Response.json(stored ?? {}, { status: 200 });
+    }
 
     if (pathname === "/") {
       return new Response(renderLandingPage(config, state), {
@@ -267,4 +347,4 @@ Bun.serve({
   },
 });
 
-console.log(`[calibre-opds] listening on ${config.host}:${config.port} root=${config.calibreRoot}`);
+console.log(`[calibre-opds] listening on ${config.host}:${config.port} root=${config.calibreRoot} kosync_db=${config.koSyncDbPath}`);

@@ -29,6 +29,7 @@ It is intended to work especially well with [CrossPoint Reader](https://github.c
 - serves direct EPUB/PDF/CBZ/CBR downloads when present
 - optionally serves cover images
 - supports optional HTTP basic auth
+- includes a minimal KOReader progress sync API with SQLite-backed state
 
 ## Why this exists
 
@@ -66,6 +67,12 @@ This is aimed at setups where:
 - `/download/:librarySlug/:bookId/cbr`
 - `/cover/:librarySlug/:bookId`
 
+### KOReader sync
+- `POST /users/create`
+- `GET /users/auth`
+- `PUT /syncs/progress`
+- `GET /syncs/progress/:document`
+
 Search results are ranked primarily by title matches, then by author/series/tag/library matches, with recency as a tiebreaker. OPDS feeds stay capped to the configured feed limit; HTML browse and search views can paginate through the full result set.
 
 ## Quick start
@@ -97,6 +104,7 @@ bun run index.ts
 | `REFRESH_MS` | `600000` | Background refresh interval |
 | `BASIC_AUTH_USER` | unset | Optional basic auth username |
 | `BASIC_AUTH_PASS` | unset | Optional basic auth password |
+| `KOSYNC_DB_PATH` | `$CALIBRE_ROOT/koreader.db` | SQLite path for KOReader sync state |
 
 ## Development
 
@@ -157,6 +165,64 @@ Example:
 git tag v0.2.3
 git push origin v0.2.3
 ```
+
+## KOReader sync
+
+This project now includes a minimal compatible implementation of KOReader's progress sync API.
+
+### What it does
+
+- stores reading progress in a SQLite database
+- defaults to keeping that database at the top of the Calibre tree as `koreader.db`
+- auto-creates users on first successful auth/sync interaction
+- stores only per-user document progress state, not book files or filenames
+
+### Auth model
+
+KOReader sends auth headers:
+
+- `x-auth-user`
+- `x-auth-key`
+
+The sync endpoints use those directly. If a user does not already exist, the first successful request creates it. Later requests must present the same key.
+
+### Stored progress model
+
+Per synced document, the server stores:
+
+- `document` (32-character MD5 document identifier from KOReader)
+- `progress`
+- `percentage`
+- `device`
+- `device_id`
+- update timestamp
+
+### Scope
+
+This is intentionally limited to **progress sync**. It does not attempt to extend OPDS itself or add broader account management.
+
+### KOReader device setup example
+
+On the KOReader device, set the custom sync server URL to your server base URL, for example:
+
+- `https://books.example.net`
+- or `http://192.168.1.50:8787` on a trusted LAN
+
+The KOReader sync plugin will talk to these endpoints on that same base URL:
+
+- `GET /users/auth`
+- `PUT /syncs/progress`
+- `GET /syncs/progress/:document`
+
+Example self-hosted setup flow:
+
+1. Open **Progress sync** settings in KOReader.
+2. Enter the custom server base URL, e.g. `http://192.168.1.50:8787`.
+3. Choose a username.
+4. Choose a password/key.
+5. Let KOReader authenticate or sync once.
+
+Because this server auto-creates users on first successful use, there is no separate admin-side provisioning step.
 
 ## Design notes
 
