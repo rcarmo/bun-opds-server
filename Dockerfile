@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json tsconfig.json ./
 COPY index.ts config.ts types.ts ./
 COPY calibre ./calibre
+COPY koreader ./koreader
 COPY server ./server
 COPY util ./util
 
