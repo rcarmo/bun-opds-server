@@ -30,8 +30,12 @@ async function buildState(config: AppConfig): Promise<AppState> {
   const books: BookEntry[] = [];
 
   for (const library of libraries) {
-    const rows = readLibraryBooks(library);
-    for (const row of rows) {
+    const result = readLibraryBooks(library);
+    if (result.error) {
+      console.warn(`[calibre-opds] skipping library=${library.name} db=${library.dbPath} error=${result.error}`);
+      continue;
+    }
+    for (const row of result.rows) {
       const mapped = mapRowToBook(library, row);
       if (mapped) books.push(mapped);
     }

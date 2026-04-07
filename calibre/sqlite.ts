@@ -7,13 +7,24 @@ function openReadOnly(dbPath: string): Database {
   return new Database(dbPath, { readonly: true });
 }
 
+export interface LibraryReadResult {
+  rows: CalibreBookRow[];
+  error?: string;
+}
+
 /** Read EPUB-capable books from one Calibre library. */
-export function readLibraryBooks(library: Library): CalibreBookRow[] {
-  const db = openReadOnly(library.dbPath);
+export function readLibraryBooks(library: Library): LibraryReadResult {
+  let db: Database | undefined;
   try {
+    db = openReadOnly(library.dbPath);
     const stmt = db.query<CalibreBookRow, []>(EPUB_BOOKS_QUERY);
-    return stmt.all();
+    return { rows: stmt.all() };
+  } catch (error) {
+    return {
+      rows: [],
+      error: error instanceof Error ? error.message : String(error),
+    };
   } finally {
-    db.close(false);
+    db?.close(false);
   }
 }
