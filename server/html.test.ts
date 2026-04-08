@@ -50,4 +50,21 @@ describe("renderBookListPage", () => {
     expect(html).toContain("/download/main/7/cbz");
     expect(html).toContain("/download/main/7/cbr");
   });
+
+  test("decodes stored HTML entities before rendering titles and metadata", () => {
+    const html = renderBookListPage("Recent", [{
+      ...entry,
+      title: "Tom &amp; Jerry",
+      authors: ["A &amp; B"],
+      libraryName: "Main &amp; More",
+      tags: ["fish &amp; chips"],
+    }], pageInfo, "/browse/recent");
+
+    expect(html).toContain("Tom &amp; Jerry");
+    expect(html).not.toContain("Tom &amp;amp; Jerry");
+    expect(html).toContain("A &amp; B");
+    expect(html).not.toContain("A &amp;amp; B");
+    expect(html).toContain("Main &amp; More");
+    expect(html).not.toContain("Main &amp;amp; More");
+  });
 });

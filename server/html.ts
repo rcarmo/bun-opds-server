@@ -11,6 +11,23 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number.parseInt(dec, 10)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
+}
+
+function displayText(value?: string): string {
+  return value ? decodeHtmlEntities(value) : "";
+}
+
 /** Render a human-friendly timestamp. */
 function shortDate(value?: string): string {
   if (!value) return "unknown";
@@ -27,6 +44,13 @@ function shortDescription(value?: string): string | undefined {
 
 /** Build one HTML card for a book entry. */
 function renderBookCard(entry: BookEntry): string {
+  const title = displayText(entry.title);
+  const authors = entry.authors.map((author) => displayText(author));
+  const libraryName = displayText(entry.libraryName);
+  const seriesName = entry.series ? displayText(entry.series) : "";
+  const summaryText = entry.description ? displayText(shortDescription(entry.description) || "") : "";
+  const tagsText = entry.tags.map((tag) => displayText(tag));
+
   const preferredDownload = entry.epubPath
     ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub`
     : entry.pdfPath
@@ -37,12 +61,12 @@ function renderBookCard(entry: BookEntry): string {
           ? `/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/cbr`
           : "#";
   const cover = entry.coverPath
-    ? `<a class="cover-link" href="${preferredDownload}"><img class="cover" src="/cover/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}" alt="Cover for ${escapeHtml(entry.title)}" loading="lazy" /></a>`
+    ? `<a class="cover-link" href="${preferredDownload}"><img class="cover" src="/cover/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}" alt="Cover for ${escapeHtml(title)}" loading="lazy" /></a>`
     : `<div class="cover placeholder">No cover</div>`;
-  const summary = shortDescription(entry.description);
-  const series = entry.series ? `<li><strong>Series:</strong> ${escapeHtml(entry.series)}</li>` : "";
+  const summary = summaryText;
+  const series = entry.series ? `<li><strong>Series:</strong> ${escapeHtml(seriesName)}</li>` : "";
   const published = entry.publishedAt ? `<li><strong>Published:</strong> ${escapeHtml(shortDate(entry.publishedAt))}</li>` : "";
-  const tags = entry.tags.length ? `<li><strong>Tags:</strong> ${escapeHtml(entry.tags.slice(0, 6).join(", "))}</li>` : "";
+  const tags = entry.tags.length ? `<li><strong>Tags:</strong> ${escapeHtml(tagsText.slice(0, 6).join(", "))}</li>` : "";
   const formats = entry.formats.length ? `<li><strong>Formats:</strong> ${escapeHtml(entry.formats.join(", "))}</li>` : "";
   const downloadLinks = [
     entry.epubPath ? `<a href="/download/${encodeURIComponent(entry.librarySlug)}/${entry.bookId}/epub">Download EPUB</a>` : "",
@@ -56,10 +80,10 @@ function renderBookCard(entry: BookEntry): string {
     <article class="book-card">
       ${cover}
       <div class="book-meta">
-        <h3>${escapeHtml(entry.title)}</h3>
-        <p class="authors">${escapeHtml(entry.authors.join(", ") || "Unknown author")}</p>
+        <h3>${escapeHtml(title)}</h3>
+        <p class="authors">${escapeHtml(authors.join(", ") || "Unknown author")}</p>
         <ul>
-          <li><strong>Library:</strong> ${escapeHtml(entry.libraryName)}</li>
+          <li><strong>Library:</strong> ${escapeHtml(libraryName)}</li>
           ${series}
           ${published}
           <li><strong>Updated:</strong> ${escapeHtml(shortDate(entry.updatedAt || entry.addedAt))}</li>
