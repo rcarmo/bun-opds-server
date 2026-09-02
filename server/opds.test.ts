@@ -9,6 +9,7 @@ const config: AppConfig = {
   baseUrl: "http://localhost:8787",
   feedLimit: 100,
   refreshMs: 600000,
+  koSyncDbPath: "/tmp/koreader.db",
 };
 
 const entry: BookEntry = {

@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, statSync, type Dirent } from "node:fs";
 import { basename, join } from "node:path";
 import type { Library } from "../types.ts";
 
@@ -18,7 +18,7 @@ export function discoverLibraries(root: string): Library[] {
   const used = new Set<string>();
 
   function walk(dir: string) {
-    let entries: ReturnType<typeof readdirSync>;
+    let entries: Dirent<string>[];
     try {
       entries = readdirSync(dir, { withFileTypes: true });
     } catch {
