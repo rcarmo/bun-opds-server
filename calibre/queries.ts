@@ -13,7 +13,7 @@ SELECT
   MAX(CASE WHEN UPPER(d.format) = 'CBR' THEN d.name END) AS cbr_file_stem,
   GROUP_CONCAT(DISTINCT UPPER(d.format)) AS formats,
   (
-    SELECT GROUP_CONCAT(a.name, ', ')
+    SELECT GROUP_CONCAT(a.name, CHAR(31))
     FROM books_authors_link bal
     JOIN authors a ON a.id = bal.author
     WHERE bal.book = b.id

@@ -57,6 +57,28 @@ describe("searchBooks", () => {
     expect(result.map((entry) => entry.uid)).toEqual(["main:2", "main:1"]);
   });
 
+  test("matches comma-form authors regardless of name order", () => {
+    const result = searchBooks([
+      makeBook({ uid: "author:1", title: "Dark Age", authors: ["Brown, Pierce"] }),
+    ], "  PIERCE   BROWN ");
+    expect(result.map((entry) => entry.uid)).toEqual(["author:1"]);
+  });
+
+  test("matches accidentally split author names across entries", () => {
+    const result = searchBooks([
+      makeBook({ uid: "author:1", title: "Dark Age", authors: ["Brown", "Pierce"] }),
+    ], "Pierce Brown");
+    expect(result.map((entry) => entry.uid)).toEqual(["author:1"]);
+  });
+
+  test("keeps title matches ranked above unordered author matches", () => {
+    const result = searchBooks([
+      makeBook({ uid: "author:1", title: "Dark Age", authors: ["Brown, Pierce"] }),
+      makeBook({ uid: "title:2", bookId: 2, title: "Pierce Brown", authors: ["Someone Else"] }),
+    ], "Pierce Brown");
+    expect(result.map((entry) => entry.uid)).toEqual(["title:2", "author:1"]);
+  });
+
   test("matches by library name", () => {
     const result = searchBooks(entries, "modern fiction");
     expect(result.map((entry) => entry.uid)).toEqual(["other:3"]);

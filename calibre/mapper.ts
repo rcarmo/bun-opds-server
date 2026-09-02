@@ -10,10 +10,16 @@ function normalizeDate(value?: string | null): string | undefined {
   return parsed.toISOString();
 }
 
-/** Split a Calibre GROUP_CONCAT field into a clean list. */
+/** Split a comma-separated Calibre GROUP_CONCAT field into a clean list. */
 function parseList(value?: string | null): string[] {
   if (!value) return [];
   return value.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
+/** Split authors on the query's delimiter without splitting commas within names. */
+function parseAuthors(value?: string | null): string[] {
+  if (!value) return [];
+  return value.split("\x1f").map((part) => part.trim()).filter(Boolean);
 }
 
 /** Reduce HTML-ish Calibre comments to a compact text summary. */
@@ -53,7 +59,7 @@ export function mapRowToBook(library: Library, row: CalibreBookRow): BookEntry |
     libraryName: library.name,
     bookId: row.book_id,
     title: row.title,
-    authors: parseList(row.authors),
+    authors: parseAuthors(row.authors),
     series: row.series || undefined,
     description: normalizeDescription(row.description),
     publishedAt: normalizeDate(row.published_at),

@@ -19,11 +19,25 @@ function scoreText(value: string, needle: string, exact: number, prefix: number,
   return 0;
 }
 
+/** Reduce text to word tokens for punctuation- and order-insensitive author matching. */
+function wordTokens(value: string): string[] {
+  return normalizeSearchTerm(value).match(/[\p{L}\p{N}]+/gu) || [];
+}
+
+/** Score authors while allowing all query words to appear in any order. */
+function scoreAuthors(authors: string[], needle: string): number {
+  const orderedScore = Math.max(0, ...authors.map((author) => scoreText(author, needle, 60, 45, 30)), 0);
+  const queryTokens = wordTokens(needle);
+  const authorTokens = new Set(authors.flatMap(wordTokens));
+  const tokenScore = queryTokens.length > 0 && queryTokens.every((token) => authorTokens.has(token)) ? 60 : 0;
+  return Math.max(orderedScore, tokenScore);
+}
+
 /** Score one book entry, weighting title matches highest. */
 export function scoreBook(entry: BookEntry, needle: string): number {
   let score = 0;
   score += scoreText(entry.title, needle, 120, 90, 70);
-  score += Math.max(0, ...entry.authors.map((author) => scoreText(author, needle, 60, 45, 30)), 0);
+  score += scoreAuthors(entry.authors, needle);
   score += entry.series ? scoreText(entry.series, needle, 40, 30, 20) : 0;
   score += Math.max(0, ...entry.tags.map((tag) => scoreText(tag, needle, 20, 15, 10)), 0);
   score += scoreText(entry.libraryName, needle, 10, 8, 5);

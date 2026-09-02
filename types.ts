@@ -112,7 +112,7 @@ export type CalibreBookRow = {
   cbr_file_stem?: string | null;
   /** Comma-separated available formats. */
   formats?: string | null;
-  /** Comma-separated authors list. */
+  /** Unit-separator-delimited authors list (commas may occur within names). */
   authors?: string | null;
   /** Optional series name. */
   series?: string | null;
