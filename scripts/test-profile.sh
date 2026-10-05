@@ -62,6 +62,8 @@ else
 fi
 ensure_owned_evidence_dir "$profile_root"
 ensure_owned_evidence_dir "$evidence_dir"
+test_profiles_dir="$evidence_dir/test-processes"
+ensure_owned_evidence_dir "$test_profiles_dir"
 
 bun_version="$(bun --version)"
 working_tree_dirty=false
@@ -75,17 +77,25 @@ if [[ -n "$(git status --porcelain)" ]]; then working_tree_dirty=true; fi
   printf 'bun_path=%s\n' "$(command -v bun)"
   printf 'bun_version=%s\n' "$bun_version"
   printf 'working_tree_dirty=%s\n' "$working_tree_dirty"
-  printf 'cpu_sampling_interval_us=100\n'
-  printf 'heap_sampling_interval_bytes=4096\n'
+  printf 'test_cpu_sampling_interval_us=100\n'
+  printf 'test_heap_capture=end-of-run Bun.generateHeapSnapshot()\n'
+  printf 'representative_cpu_sampling_interval_us=100\n'
+  printf 'representative_heap_sampling_interval_bytes=4096\n'
   printf 'test_workload=bun test\n'
+  printf 'test_capture=bun:jsc.profile() async preload plus final afterAll heap snapshot\n'
   printf 'profile_workload=scripts/profile-workload.ts (4053 books, 250 search rounds, OPDS and HTML rendering)\n'
-  printf 'direct_test_capture=unsupported (verified Bun 1.4.2 bun test did not emit requested profile files)\n'
   printf 'test_binary=none (Bun interprets the TypeScript test suite)\n'
 } > "$evidence_dir/metadata.txt"
 
+test_bun_options="--preload=$PWD/scripts/test-profile-preload.ts"
+if [[ -n "${BUN_OPTIONS:-}" ]]; then test_bun_options="${BUN_OPTIONS} ${test_bun_options}"; fi
+
 set +e
-RUN_ID="$run_id" ./scripts/with-project-tmp.sh test \
-  bun test 2>&1 | tee "$evidence_dir/test.log"
+OPDS_TEST_PROFILE_DIR="$test_profiles_dir" \
+OPDS_TEST_CPU_INTERVAL_US=100 \
+BUN_OPTIONS="$test_bun_options" \
+RUN_ID="$run_id" \
+  ./scripts/with-project-tmp.sh test bun test 2>&1 | tee "$evidence_dir/test.log"
 test_status=${PIPESTATUS[0]}
 
 RUN_ID="${run_id}-workload" ./scripts/with-project-tmp.sh profile-workload \
@@ -103,32 +113,74 @@ profile_status=${PIPESTATUS[0]}
 set -e
 
 status="$test_status"
-if (( profile_status != 0 )); then
-  status="$profile_status"
+if (( profile_status != 0 )); then status="$profile_status"; fi
+
+actual_cpu_count="$(find "$test_profiles_dir" -mindepth 2 -maxdepth 2 -type f -name cpu.json -size +0c | wc -l)"
+actual_heap_count="$(find "$test_profiles_dir" -mindepth 2 -maxdepth 2 -type f -name heap.json -size +0c | wc -l)"
+actual_command_count="$(find "$test_profiles_dir" -mindepth 2 -maxdepth 2 -type f -name command.json -size +0c | wc -l)"
+actual_error_count="$(find "$test_profiles_dir" -mindepth 2 -maxdepth 2 -type f -name capture-error.txt -size +0c | wc -l)"
+test_analysis="$evidence_dir/test-analysis.md"
+actual_analysis_status=0
+if (( actual_cpu_count == 0 || actual_cpu_count != actual_heap_count || actual_cpu_count != actual_command_count || actual_error_count != 0 )); then
+  printf 'Actual test profile capture failed: cpu=%s heap=%s command=%s errors=%s.\n' \
+    "$actual_cpu_count" "$actual_heap_count" "$actual_command_count" "$actual_error_count" | tee "$test_analysis" >&2
+  actual_analysis_status=1
+else
+  set +e
+  RUN_ID="${run_id}-test-analysis" ./scripts/with-project-tmp.sh profile-analysis \
+    bun run scripts/analyze-test-profiles.ts "$test_profiles_dir" "$test_analysis"
+  actual_analysis_status=$?
+  set -e
+fi
+if (( actual_analysis_status != 0 )); then
+  status="$actual_analysis_status"
+  if [[ ! -s "$test_analysis" ]]; then
+    printf 'Actual test profile analysis failed with status %s.\n' "$actual_analysis_status" > "$test_analysis"
+  fi
 fi
 
 cpu_profile="$evidence_dir/cpu.cpuprofile"
 heap_profile="$evidence_dir/heap.md"
+representative_analysis="$evidence_dir/representative-analysis.md"
+representative_analysis_status=0
 if [[ ! -s "$cpu_profile" || ! -s "$heap_profile" ]]; then
-  printf 'Profile capture failed: representative CPU or heap profile is missing/empty.\n' | tee "$evidence_dir/analysis.md" >&2
-  status=1
+  printf 'Supplemental representative profile capture failed: CPU or heap profile is missing/empty.\n' \
+    | tee "$representative_analysis" >&2
+  representative_analysis_status=1
 else
-  RUN_ID="${run_id}-analysis" ./scripts/with-project-tmp.sh profile-analysis \
-    bun run scripts/analyze-bun-profiles.ts "$cpu_profile" "$heap_profile" "$evidence_dir/analysis.md"
+  set +e
+  RUN_ID="${run_id}-workload-analysis" ./scripts/with-project-tmp.sh profile-analysis \
+    bun run scripts/analyze-bun-profiles.ts "$cpu_profile" "$heap_profile" "$representative_analysis"
+  representative_analysis_status=$?
+  set -e
+fi
+if (( representative_analysis_status != 0 )); then
+  status="$representative_analysis_status"
+  if [[ ! -s "$representative_analysis" ]]; then
+    printf 'Supplemental representative profile analysis failed with status %s.\n' "$representative_analysis_status" > "$representative_analysis"
+  fi
 fi
 
 {
+  printf '# Bun test profiling evidence\n\n'
+  cat "$test_analysis"
+  printf '\n'
+  cat "$representative_analysis"
   printf '\n## Capture metadata\n\n'
   printf -- '- Test exit status: `%s`\n' "$test_status"
+  printf -- '- Actual test profile analysis exit status: `%s`\n' "$actual_analysis_status"
+  printf -- '- Actual test CPU sampling interval: `100 us`\n'
+  printf -- '- Actual test heap capture: final `Bun.generateHeapSnapshot()` in `afterAll`.\n'
+  printf -- '- Actual heap limitation: end-of-run live objects and self size, not cumulative allocation history or `alloc_space`/`alloc_objects`.\n'
   printf -- '- Representative workload exit status: `%s`\n' "$profile_status"
-  printf -- '- CPU sampling interval: `100 us`\n'
-  printf -- '- Heap sampling interval: `4096 bytes`\n'
-  printf -- '- Test workload: `bun test`\n'
-  printf -- '- Profiled workload: `scripts/profile-workload.ts` (4,053 books, 250 search rounds, OPDS and HTML rendering)\n'
-  printf -- '- Direct test-run profiling limitation: verified Bun 1.4.2 did not emit requested profiles for `bun test`; the deterministic application workload supplies representative CPU/heap evidence.\n'
+  printf -- '- Representative profile analysis exit status: `%s`\n' "$representative_analysis_status"
+  printf -- '- Representative CPU sampling interval: `100 us`\n'
+  printf -- '- Representative heap sampling interval: `4096 bytes`\n'
+  printf -- '- Test workload: `bun test` with `scripts/test-profile-preload.ts`.\n'
+  printf -- '- Supplemental workload: `scripts/profile-workload.ts` (4,053 books, 250 search rounds, OPDS and HTML rendering).\n'
   printf -- '- Generated files:\n'
-  find "$evidence_dir" -maxdepth 1 -type f -printf '  - `%f` (%s bytes)\n' | sort
-} >> "$evidence_dir/analysis.md"
+  find "$evidence_dir" -maxdepth 3 -type f -printf '  - `%P` (%s bytes)\n' | sort
+} > "$evidence_dir/analysis.md"
 
 printf 'Profile evidence: %s\n' "$evidence_dir"
 exit "$status"

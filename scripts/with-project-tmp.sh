@@ -9,6 +9,8 @@ project_tmp_root="$(project_tmp_resolve "$project")"
 project_tmp_init "$project_tmp_root"
 cache_root="${project_tmp_root}/cache"
 build_root="${project_tmp_root}/build"
+test_root="${project_tmp_root}/tests"
+log_root="${project_tmp_root}/logs"
 run_root="${project_tmp_root}/runs"
 
 if (( $# < 2 )); then
@@ -61,6 +63,8 @@ for path in \
   "$cache_root/npm" \
   "$cache_root/xdg" \
   "$build_root" \
+  "$test_root" \
+  "$log_root" \
   "$run_root" \
   "$purpose_dir" \
   "$run_dir" \
@@ -71,6 +75,8 @@ done
 export PROJECT_TMP_ROOT="$project_tmp_root"
 export CACHE_ROOT="$cache_root"
 export BUILD_ROOT="$build_root"
+export TEST_ROOT="$test_root"
+export LOG_ROOT="$log_root"
 export RUN_ROOT="$run_root"
 export RUN_DIR="$run_dir"
 export BUN_INSTALL_CACHE_DIR="$cache_root/bun"

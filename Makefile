@@ -6,6 +6,9 @@ PROJECT_TMP_HELPER := ./scripts/project-tmp.sh
 RUN := ./scripts/with-project-tmp.sh
 
 export PROJECT
+ifneq ($(origin PROJECT_TMP_BASE),undefined)
+export PROJECT_TMP_BASE
+endif
 ifneq ($(origin PROJECT_TMP_ROOT),undefined)
 export PROJECT_TMP_ROOT
 endif
@@ -25,7 +28,7 @@ help:
 	  'typecheck run TypeScript validation in an isolated run directory' \
 	  'test      run the Bun test suite in an isolated run directory' \
 	  'check     run typecheck and tests' \
-	  'clean     remove only this project scratch root; requires CONFIRM_CLEAN=$(PROJECT)'
+	  'clean     reset this project cache/build/tests/logs/runs; requires CONFIRM_CLEAN=$(PROJECT)'
 
 paths:
 	@bash "$(PROJECT_TMP_HELPER)" paths
@@ -55,5 +58,5 @@ clean:
 	@set -eu; root="$$(bash "$(PROJECT_TMP_HELPER)" paths | sed -n 's/^PROJECT_TMP_ROOT=//p')"; \
 	  case "$$root" in /*/$(PROJECT)) ;; *) echo 'Refusing unexpected project scratch root' >&2; exit 1;; esac; \
 	  test ! -L "$$root" && test -d "$$root" && test -O "$$root" || { echo 'Refusing unsafe project scratch root' >&2; exit 1; }; \
-	  rm -rf -- "$$root/cache" "$$root/build" "$$root/runs"; \
-	  mkdir -p "$$root/cache" "$$root/build" "$$root/runs"
+	  rm -rf -- "$$root/cache" "$$root/build" "$$root/tests" "$$root/logs" "$$root/runs"; \
+	  mkdir -p "$$root/cache" "$$root/build" "$$root/tests" "$$root/logs" "$$root/runs"

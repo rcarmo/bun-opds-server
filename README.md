@@ -113,7 +113,7 @@ make dev
 make check
 ```
 
-The Makefile routes Bun/npm caches, generated output, and per-run temporary files through one project-owned root. It prefers `/workspace/tmp/bun-opds-server`, then `${RUNNER_TEMP}`, the inherited `${TMPDIR}`, or `/tmp`, always appending `/bun-opds-server`. An explicit `PROJECT_TMP_ROOT` must be an absolute usable path ending in `/bun-opds-server`; invalid overrides fail. External `make test` runs also require `PROFILE_ROOT` to identify retained evidence storage outside disposable scratch.
+The Makefile routes caches, generated output, test scratch, logs, and per-run temporary files through one project-owned root with stable `cache`, `build`, `tests`, `logs`, and `runs` subdirectories. `PROJECT_TMP_BASE` selects `<base>/bun-opds-server`; a compatible `PROJECT_TMP_ROOT` may select the same path, while invalid or conflicting overrides fail. Without overrides, CI tries `${RUNNER_TEMP}`, the original `${TMPDIR}`, then `/tmp`; local runs try `/workspace/tmp` then `/tmp`, always appending `/bun-opds-server`. External `make test` runs also require `PROFILE_ROOT` to identify retained evidence storage outside disposable scratch. Test runs preload a `bun:jsc.profile()` capture and write a final heap snapshot for the actual suite; the report explicitly treats that snapshot as live end-of-run state rather than cumulative allocation history.
 
 ## Docker image
 

@@ -89,7 +89,7 @@ const heapMarkdown = readFileSync(heapPath, "utf8");
 const cpuSamples = cpu.samples?.length || 0;
 const totalCpuMs = (cpu.timeDeltas || []).reduce((sum, value) => sum + value, 0) / 1000;
 
-const report = `# Bun representative workload profile analysis
+const report = `## Supplemental representative workload — CPU and heap
 
 - CPU samples: ${cpuSamples}
 - CPU sampled duration: ${totalCpuMs.toFixed(3)} ms

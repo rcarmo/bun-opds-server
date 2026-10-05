@@ -25,12 +25,17 @@ jobs:
           mkdir -p \
             "${root}/cache/xdg" \
             "${root}/build" \
+            "${root}/tests" \
+            "${root}/logs" \
             "${run_dir}/docker" \
             "${run_dir}/tmp"
           {
+            printf 'PROJECT_TMP_BASE=%s\n' "$RUNNER_TEMP"
             printf 'PROJECT_TMP_ROOT=%s\n' "$root"
             printf 'CACHE_ROOT=%s\n' "${root}/cache"
             printf 'BUILD_ROOT=%s\n' "${root}/build"
+            printf 'TEST_ROOT=%s\n' "${root}/tests"
+            printf 'LOG_ROOT=%s\n' "${root}/logs"
             printf 'RUN_ROOT=%s\n' "${root}/runs"
             printf 'XDG_CACHE_HOME=%s\n' "${root}/cache/xdg"
             printf 'DOCKER_CONFIG=%s\n' "${run_dir}/docker"
