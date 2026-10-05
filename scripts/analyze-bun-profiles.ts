@@ -52,7 +52,7 @@ function cpuTable(profile: CpuProfile, applicationOnly: boolean): string {
     .map((node) => ({ node, cumulative: cumulative.get(node.id) || 0, self: self.get(node.id) || 0 }))
     .filter((row) => row.cumulative > 0)
     .sort((a, b) => b.cumulative - a.cumulative)
-    .slice(0, 15);
+    .slice(0, 10);
   if (!rows.length) return "_No sampled frames._\n";
   return [
     "| Cumulative ms | Self ms | Frame |",
@@ -96,9 +96,6 @@ const report = `## Supplemental representative workload — CPU and heap
 - Heap format: Bun end-of-run heap snapshot Markdown.
 - Allocation limitation: Bun 1.4.2 does not expose cumulative allocation-space or allocation-object samples here; the tables report live object counts plus self and retained size.
 
-## CPU — cumulative and self time
-
-${cpuTable(cpu, false)}
 ## CPU — application frames
 
 ${cpuTable(cpu, true)}
@@ -107,7 +104,7 @@ ${cpuTable(cpu, true)}
 ${markdownSection(heapMarkdown, "## Summary", 5)}
 ## Heap — top types by retained size
 
-${markdownSection(heapMarkdown, "## Top 50 Types by Retained Size", 15)}
+${markdownSection(heapMarkdown, "## Top 50 Types by Retained Size", 10)}
 Heap type rows combine application and runtime objects because Bun's snapshot report does not attribute retained types to source frames.
 `;
 

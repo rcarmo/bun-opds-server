@@ -47,6 +47,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Run pre-release verification
+        shell: bash
+        run: make install pre-release PROFILE_ROOT="$BUILD_ROOT/profile-conclusions"
+
+      - name: Upload profiling conclusion
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profiling-conclusion-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bun-opds-server/build/profile-conclusions
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 

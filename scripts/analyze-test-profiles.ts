@@ -143,7 +143,7 @@ function cpuTable(applicationOnly: boolean): string {
     .filter(([key]) => !applicationOnly || (key.includes("/bun-opds-server/") && !key.includes("/node_modules/")))
     .map(([key, cumulative]) => ({ key, cumulative, self: selfUs.get(key) || 0 }))
     .sort((a, b) => b.cumulative - a.cumulative)
-    .slice(0, 15);
+    .slice(0, 10);
   if (!rows.length) return "_No sampled frames._\n";
   return [
     "| Cumulative sampled ms | Self sampled ms | Frame |",
@@ -160,7 +160,7 @@ const totalHeapBytes = processes.reduce((sum, item) => sum + item.heapSelfBytes,
 const heapRows = [...heapTypes]
   .map(([name, values]) => ({ name, ...values }))
   .sort((a, b) => b.selfBytes - a.selfBytes)
-  .slice(0, 15);
+  .slice(0, 10);
 
 const report = `## Actual Bun test run — CPU and heap
 
@@ -178,9 +178,6 @@ const report = `## Actual Bun test run — CPU and heap
 |---:|---:|---:|---:|---:|---|
 ${processes.map((item) => `| ${item.pid} | ${item.samples} | ${item.sampledMs.toFixed(3)} | ${item.heapObjects} | ${(item.heapSelfBytes / 1024).toFixed(1)} KB | ${escapeCell(item.command)} |`).join("\n")}
 
-### CPU — cumulative and self samples
-
-${cpuTable(false)}
 ### CPU — application frames
 
 ${cpuTable(true)}

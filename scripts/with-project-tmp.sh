@@ -87,4 +87,17 @@ export TMPDIR="$tmp_dir"
 export TMP="$tmp_dir"
 export TEMP="$tmp_dir"
 
-exec "$@"
+cleanup_run_dir() {
+  case "$run_dir" in
+    "$run_root/$purpose/"*) ;;
+    *) echo "refusing unexpected run cleanup path: $run_dir" >&2; return 1 ;;
+  esac
+  if [[ -d "$run_root" && ! -L "$run_root" && -O "$run_root" ]]; then
+    rm -rf -- "$run_dir"
+    rmdir -- "$purpose_dir" 2>/dev/null || true
+  fi
+}
+trap cleanup_run_dir EXIT
+trap 'exit 130' HUP INT TERM
+
+"$@"

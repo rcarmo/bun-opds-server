@@ -110,10 +110,13 @@ make start
 
 ```bash
 make dev
-make check
+make check       # ordinary development validation
+make pre-release # mandatory CPU/heap profiling before release
 ```
 
-The Makefile routes caches, generated output, test scratch, logs, and per-run temporary files through one project-owned root with stable `cache`, `build`, `tests`, `logs`, and `runs` subdirectories. `PROJECT_TMP_BASE` selects `<base>/bun-opds-server`; a compatible `PROJECT_TMP_ROOT` may select the same path, while invalid or conflicting overrides fail. Without overrides, CI tries `${RUNNER_TEMP}`, the original `${TMPDIR}`, then `/tmp`; local runs try `/workspace/tmp` then `/tmp`, always appending `/bun-opds-server`. External `make test` runs also require `PROFILE_ROOT` to identify retained evidence storage outside disposable scratch. Test runs preload a `bun:jsc.profile()` capture and write a final heap snapshot for the actual suite; the report explicitly treats that snapshot as live end-of-run state rather than cumulative allocation history.
+The Makefile routes caches, generated output, test scratch, logs, and per-run temporary files through one project-owned root with stable `cache`, `build`, `tests`, `logs`, and `runs` subdirectories. `PROJECT_TMP_BASE` selects `<base>/bun-opds-server`; a compatible `PROJECT_TMP_ROOT` may select the same path, while invalid or conflicting overrides fail. Without overrides, CI tries `${RUNNER_TEMP}`, the original `${TMPDIR}`, then `/tmp`; local runs try `/workspace/tmp` then `/tmp`, always appending `/bun-opds-server`.
+
+Ordinary `make test` and `make check` runs do not profile. `make pre-release` profiles the real Bun test process plus a representative workload, retains only the analysed conclusion, and immediately deletes raw profiles, heap snapshots, disposable logs, and run scratch. External pre-release runs require an absolute `PROFILE_ROOT` outside project scratch. The actual-suite heap report describes final live state rather than cumulative allocation history; Bun 1.4.2 does not expose `alloc_space` or `alloc_objects` here.
 
 ## Docker image
 
