@@ -33,7 +33,7 @@ Retained Bun test logs, representative CPU/heap profiles, and matching metadata 
 
 `make clean CONFIRM_CLEAN=bun-opds-server` may remove only this project's `cache`, `build`, and `runs` trees. Run it only after confirming no active process uses them. It must not remove another project's files or retained evidence.
 
-GitHub-hosted workflows explicitly set `PROJECT_TMP_ROOT=${{ runner.temp }}/bun-opds-server`; other external hosts may use the documented generic fallbacks. CI must use the vendored helper or equivalent environment mapping and must never depend on `/workspace/Makefile`.
+GitHub-hosted workflows initialize `PROJECT_TMP_ROOT=$RUNNER_TEMP/bun-opds-server` in their first runner step; other external hosts may use the documented generic fallbacks. CI must use the vendored helper or equivalent environment mapping and must never depend on `/workspace/Makefile`.
 
 ## Deployment
 

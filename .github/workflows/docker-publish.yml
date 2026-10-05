@@ -15,24 +15,29 @@ permissions:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    env:
-      PROJECT_TMP_ROOT: ${{ runner.temp }}/bun-opds-server
-      CACHE_ROOT: ${{ runner.temp }}/bun-opds-server/cache
-      BUILD_ROOT: ${{ runner.temp }}/bun-opds-server/build
-      RUN_ROOT: ${{ runner.temp }}/bun-opds-server/runs
-      XDG_CACHE_HOME: ${{ runner.temp }}/bun-opds-server/cache/xdg
-      DOCKER_CONFIG: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/docker
-      TMPDIR: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/tmp
-      TMP: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/tmp
-      TEMP: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/tmp
     steps:
       - name: Prepare project scratch
+        shell: bash
         run: |
+          set -euo pipefail
+          root="${RUNNER_TEMP}/bun-opds-server"
+          run_dir="${root}/runs/docker-publish/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           mkdir -p \
-            "$CACHE_ROOT/xdg" \
-            "$BUILD_ROOT" \
-            "$DOCKER_CONFIG" \
-            "$TMPDIR"
+            "${root}/cache/xdg" \
+            "${root}/build" \
+            "${run_dir}/docker" \
+            "${run_dir}/tmp"
+          {
+            printf 'PROJECT_TMP_ROOT=%s\n' "$root"
+            printf 'CACHE_ROOT=%s\n' "${root}/cache"
+            printf 'BUILD_ROOT=%s\n' "${root}/build"
+            printf 'RUN_ROOT=%s\n' "${root}/runs"
+            printf 'XDG_CACHE_HOME=%s\n' "${root}/cache/xdg"
+            printf 'DOCKER_CONFIG=%s\n' "${run_dir}/docker"
+            printf 'TMPDIR=%s\n' "${run_dir}/tmp"
+            printf 'TMP=%s\n' "${run_dir}/tmp"
+            printf 'TEMP=%s\n' "${run_dir}/tmp"
+          } >> "$GITHUB_ENV"
 
       - name: Checkout
         uses: actions/checkout@v4
