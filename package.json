@@ -27,10 +27,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "bun run --watch index.ts",
-    "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "start": "./scripts/with-project-tmp.sh start bun run index.ts",
+    "dev": "./scripts/with-project-tmp.sh dev bun run --watch index.ts",
+    "test": "./scripts/test-profile.sh",
+    "typecheck": "./scripts/with-project-tmp.sh typecheck bun x tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "latest"

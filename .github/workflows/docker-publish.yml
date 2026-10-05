@@ -15,7 +15,25 @@ permissions:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    env:
+      PROJECT_TMP_ROOT: ${{ runner.temp }}/bun-opds-server
+      CACHE_ROOT: ${{ runner.temp }}/bun-opds-server/cache
+      BUILD_ROOT: ${{ runner.temp }}/bun-opds-server/build
+      RUN_ROOT: ${{ runner.temp }}/bun-opds-server/runs
+      XDG_CACHE_HOME: ${{ runner.temp }}/bun-opds-server/cache/xdg
+      DOCKER_CONFIG: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/docker
+      TMPDIR: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/tmp
+      TMP: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/tmp
+      TEMP: ${{ runner.temp }}/bun-opds-server/runs/docker-publish/${{ github.run_id }}-${{ github.run_attempt }}/tmp
     steps:
+      - name: Prepare project scratch
+        run: |
+          mkdir -p \
+            "$CACHE_ROOT/xdg" \
+            "$BUILD_ROOT" \
+            "$DOCKER_CONFIG" \
+            "$TMPDIR"
+
       - name: Checkout
         uses: actions/checkout@v4
 

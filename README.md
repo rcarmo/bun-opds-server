@@ -80,7 +80,7 @@ Search results are ranked primarily by title matches, then by author/series/tag/
 ```bash
 cd /workspace/projects/bun-opds-server
 cp .env.example .env
-bun run index.ts
+make start
 ```
 
 Or with inline variables:
@@ -89,7 +89,7 @@ Or with inline variables:
 cd /workspace/projects/bun-opds-server
 CALIBRE_ROOT=/volume1/books \
 BASE_URL=http://localhost:8787 \
-bun run index.ts
+make start
 ```
 
 ## Environment
@@ -109,9 +109,11 @@ bun run index.ts
 ## Development
 
 ```bash
-bun run index.ts --help
-bun run --watch index.ts
+make dev
+make check
 ```
+
+The Makefile routes Bun/npm caches, generated output, and per-run temporary files through one project-owned root. It prefers `/workspace/tmp/bun-opds-server`, then `${RUNNER_TEMP}`, the inherited `${TMPDIR}`, or `/tmp`, always appending `/bun-opds-server`. An explicit `PROJECT_TMP_ROOT` must be an absolute usable path ending in `/bun-opds-server`; invalid overrides fail. External `make test` runs also require `PROFILE_ROOT` to identify retained evidence storage outside disposable scratch.
 
 ## Docker image
 
