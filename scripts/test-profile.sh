@@ -10,11 +10,11 @@ run_root="$project_tmp_root/runs"
 
 workspace_profile_root="/workspace/analysis/${project}/test-profiles"
 if [[ -f /workspace/AGENTS.md ]]; then
-  if [[ -n "${PROFILE_ROOT:-}" && "$PROFILE_ROOT" != "$workspace_profile_root" ]]; then
-    echo "PROFILE_ROOT must be $workspace_profile_root on the Piclaw workspace host" >&2
+  if [[ -n "${PROFILE_ROOT:-}" && "$PROFILE_ROOT" != "$workspace_profile_root" && "$PROFILE_ROOT" != "$project_tmp_root/build/profile-conclusions" ]]; then
+    echo "PROFILE_ROOT must be $workspace_profile_root locally or project build/profile-conclusions for CI" >&2
     exit 1
   fi
-  profile_root="$workspace_profile_root"
+  profile_root="${PROFILE_ROOT:-$workspace_profile_root}"
 else
   : "${PROFILE_ROOT:?set PROFILE_ROOT to retained profiling conclusions on this external host}"
   case "$PROFILE_ROOT" in /*) ;; *) echo "PROFILE_ROOT must be absolute" >&2; exit 1;; esac
@@ -24,8 +24,9 @@ else
   fi
   profile_root="$PROFILE_ROOT"
 fi
-case "$profile_root/" in
-  "$project_tmp_root/"*) echo "PROFILE_ROOT must be outside disposable project scratch" >&2; exit 1;;
+case "$profile_root" in
+  "$project_tmp_root/build/profile-conclusions") ;;
+  "$project_tmp_root"/*) echo "PROFILE_ROOT inside project scratch must be exactly build/profile-conclusions" >&2; exit 1;;
 esac
 
 run_id="${RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM}}"
