@@ -67,4 +67,15 @@ describe("renderBookListPage", () => {
     expect(html).toContain("Main &amp; More");
     expect(html).not.toContain("Main &amp;amp; More");
   });
+
+  test("decodes description entities and safely escapes the resulting text", () => {
+    const html = renderBookListPage("Recent", [{
+      ...entry,
+      description: "Fish &amp;amp; Chips &amp;quot;Best&amp;quot; &amp;#39;ever&amp;#39; &amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;",
+    }], pageInfo, "/browse/recent");
+
+    expect(html).toContain("Fish &amp; Chips &quot;Best&quot; &#39;ever&#39; &lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(html).not.toContain("&amp;amp;");
+    expect(html).not.toContain("<script>");
+  });
 });
