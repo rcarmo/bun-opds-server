@@ -27,9 +27,9 @@ jobs:
             "${root}/build" \
             "${root}/tests" \
             "${root}/logs" \
-            "${run_dir}/docker" \
             "${run_dir}/tmp"
           {
+            printf 'DOCKER_CONFIG=%s\n' "$HOME/.docker"
             printf 'PROJECT_TMP_BASE=%s\n' "$RUNNER_TEMP"
             printf 'PROJECT_TMP_ROOT=%s\n' "$root"
             printf 'CACHE_ROOT=%s\n' "${root}/cache"
@@ -38,7 +38,6 @@ jobs:
             printf 'LOG_ROOT=%s\n' "${root}/logs"
             printf 'RUN_ROOT=%s\n' "${root}/runs"
             printf 'XDG_CACHE_HOME=%s\n' "${root}/cache/xdg"
-            printf 'DOCKER_CONFIG=%s\n' "${run_dir}/docker"
             printf 'TMPDIR=%s\n' "${run_dir}/tmp"
             printf 'TMP=%s\n' "${run_dir}/tmp"
             printf 'TEMP=%s\n' "${run_dir}/tmp"
